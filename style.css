@@ -49,26 +49,39 @@ body {
 }
 
 .brand {
-    font-family: "DM Mono", monospace;
-    font-size: 14px;
-    font-weight: 500;
-    letter-spacing: 2.1px;
+    font-family: "Playfair Display", serif;
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: 3.5px;
     display: flex;
     align-items: center;
-    gap: 12px
+    gap: 16px;
+    position: relative;
+    z-index: 1
+}
+
+.brand span:last-child {
+    background: linear-gradient(100deg, #f7f3e9 0%, var(--mint) 55%, #f7f3e9 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 2px 22px rgba(201, 229, 217, .35)
 }
 
 .brand-mark {
     display: grid;
     place-items: center;
-    width: 29px;
-    height: 29px;
-    border: 1px solid var(--mint);
+    width: 46px;
+    height: 46px;
+    border: 1.5px solid var(--mint);
     border-radius: 50%;
     font-family: "Playfair Display", serif;
-    font-size: 20px;
+    font-size: 26px;
+    font-weight: 700;
     letter-spacing: 0;
-    color: var(--mint)
+    color: var(--mint);
+    box-shadow: 0 0 0 6px rgba(201, 229, 217, .08), 0 0 22px rgba(201, 229, 217, .25);
+    flex: 0 0 auto
 }
 
 .brand-copy {
@@ -222,6 +235,180 @@ body {
 .select-wrap span {
     font-size: 21px;
     pointer-events: none
+}
+
+.combo-wrap {
+    position: relative
+}
+
+.combo-input {
+    height: 58px;
+    width: 100%;
+    border: 1px solid var(--ink);
+    background: #fff;
+    padding: 0 40px 0 17px;
+    font: 600 14px Manrope, sans-serif;
+    color: var(--ink);
+    outline: 0
+}
+
+.combo-input::placeholder {
+    color: #9aa5b6;
+    font-weight: 500
+}
+
+.combo-input:focus {
+    outline: 3px solid #c9e5d9;
+    outline-offset: 2px
+}
+
+.combo-list {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    max-height: 224px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid var(--ink);
+    list-style: none;
+    margin: 0;
+    padding: 6px 0;
+    z-index: 4;
+    box-shadow: 0 16px 38px rgba(16, 32, 58, .16)
+}
+
+.combo-wrap.open .combo-list {
+    display: block
+}
+
+.combo-list li {
+    padding: 11px 17px;
+    font: 500 13px Manrope, sans-serif;
+    cursor: pointer
+}
+
+.combo-list li:hover,
+.combo-list li.active {
+    background: var(--mint)
+}
+
+.combo-list .combo-empty {
+    color: var(--muted);
+    cursor: default
+}
+
+.combo-list .combo-empty:hover {
+    background: none
+}
+
+.password-card {
+    border: 1px solid var(--line);
+    padding: 15px 14px;
+    margin: 10px 0 15px
+}
+
+.password-card label {
+    margin: 0 0 9px
+}
+
+.password-row {
+    display: flex;
+    gap: 8px
+}
+
+.password-field {
+    flex: 1;
+    position: relative;
+    min-width: 0
+}
+
+.password-field input {
+    width: 100%;
+    height: 47px;
+    border: 1px solid var(--ink);
+    background: #fff;
+    padding: 0 42px 0 12px;
+    font: 500 13px Manrope, sans-serif;
+    outline: 0
+}
+
+.password-field input:focus {
+    outline: 3px solid #c9e5d9;
+    outline-offset: 2px
+}
+
+.eye-btn {
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 47px;
+    width: 40px;
+    display: grid;
+    place-items: center;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    color: var(--muted)
+}
+
+.eye-btn:hover {
+    color: var(--ink)
+}
+
+.eye-icon {
+    grid-area: 1/1
+}
+
+.eye-closed {
+    display: none
+}
+
+.eye-btn[aria-pressed="true"] .eye-open {
+    display: none
+}
+
+.eye-btn[aria-pressed="true"] .eye-closed {
+    display: block
+}
+
+.verify-btn {
+    flex: 0 0 auto;
+    padding: 0 18px;
+    border: 1px solid var(--ink);
+    background: var(--ink);
+    color: #fff;
+    font: 700 11px Manrope, sans-serif;
+    letter-spacing: .4px;
+    cursor: pointer
+}
+
+.verify-btn:disabled {
+    background: #adb5c0;
+    border-color: #adb5c0;
+    cursor: not-allowed
+}
+
+.password-status {
+    min-height: 14px;
+    font-size: 11px;
+    color: var(--muted);
+    margin: 8px 0 0
+}
+
+.password-status.success {
+    color: #3f8f6b
+}
+
+.password-status.error {
+    color: #c1554a
+}
+
+.check-btn:disabled {
+    color: #b7bfcb;
+    border-color: #b7bfcb;
+    cursor: not-allowed
 }
 
 .employee-info {
@@ -568,4 +755,303 @@ body {
 
 #mobileConfirm {
     display: none
+}
+
+/* ===================== HOME / DASHBOARD ===================== */
+.home-shell {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 96px 1fr
+}
+
+.sidebar {
+    min-height: 100vh;
+    background: var(--navy);
+    color: #f7f3e9;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 26px 0 20px;
+    position: sticky;
+    top: 0
+}
+
+.sidebar-logo {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 1.5px solid var(--mint);
+    border-radius: 50%;
+    font-family: "Playfair Display", serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--mint);
+    box-shadow: 0 0 0 6px rgba(201, 229, 217, .08), 0 0 22px rgba(201, 229, 217, .25);
+    flex: 0 0 auto;
+    margin-bottom: 8px
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    margin: auto 0
+}
+
+.sidebar-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    width: 68px;
+    padding: 12px 0;
+    border: 0;
+    background: none;
+    color: #93a2ba;
+    cursor: pointer;
+    font: 500 9px "DM Mono", monospace;
+    letter-spacing: .6px;
+    text-decoration: none;
+    border-radius: 12px;
+    transition: background .2s, color .2s
+}
+
+.sidebar-link svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round
+}
+
+.sidebar-link:hover {
+    color: #f7f3e9;
+    background: rgba(201, 229, 217, .08)
+}
+
+.sidebar-link.active {
+    color: var(--navy);
+    background: var(--mint)
+}
+
+.sidebar-link.active svg {
+    stroke: var(--navy)
+}
+
+.sidebar-foot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    border-top: 1px solid rgba(255, 255, 255, .16);
+    padding-top: 16px;
+    width: 100%
+}
+
+.home-main {
+    background: #fffdf9;
+    padding: 34px clamp(24px, 4.5vw, 64px) 60px;
+    min-width: 0
+}
+
+.home-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    font: 500 10px "DM Mono", monospace;
+    letter-spacing: 1px;
+    color: #66758e;
+    margin-bottom: 34px
+}
+
+.home-topbar .secure {
+    font: 500 10px "DM Mono", monospace;
+    letter-spacing: 1px;
+    color: #66758e
+}
+
+.home-greeting {
+    margin: 0 0 36px
+}
+
+.home-greeting .step-label {
+    margin-bottom: 14px
+}
+
+.home-greeting h1 {
+    font: 800 clamp(30px, 3.6vw, 48px)/1.05 "Playfair Display", serif;
+    letter-spacing: -1.6px;
+    margin: 0 0 10px
+}
+
+.home-greeting p {
+    font-size: 14px;
+    color: var(--muted);
+    max-width: 480px;
+    line-height: 1.7;
+    margin: 0
+}
+
+.status-card {
+    border: 1px solid #9fcdb2;
+    background: #f5fbf7;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 22px 24px;
+    margin-bottom: 28px
+}
+
+.status-card .status-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: var(--mint);
+    color: var(--navy);
+    display: grid;
+    place-items: center;
+    font-size: 22px;
+    flex: 0 0 auto
+}
+
+.status-card strong {
+    display: block;
+    font-size: 15px;
+    margin-bottom: 4px
+}
+
+.status-card span {
+    font-size: 12px;
+    color: var(--muted)
+}
+
+.stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 16px;
+    margin-bottom: 36px
+}
+
+.stat-card {
+    border: 1px solid var(--line);
+    background: #fff;
+    padding: 20px
+}
+
+.stat-card .stat-label {
+    font: 500 10px "DM Mono", monospace;
+    letter-spacing: 1px;
+    color: var(--coral);
+    margin: 0 0 12px
+}
+
+.stat-card .stat-value {
+    font: 700 24px "Playfair Display", serif;
+    letter-spacing: -.5px;
+    margin: 0 0 6px
+}
+
+.stat-card .stat-note {
+    font-size: 11px;
+    color: var(--muted);
+    margin: 0
+}
+
+.home-panel {
+    border: 1px solid var(--line);
+    background: #fff;
+    padding: 26px 24px
+}
+
+.home-panel h3 {
+    font: 700 15px Manrope, sans-serif;
+    margin: 0 0 16px
+}
+
+.activity-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 13px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 13px
+}
+
+.activity-row:last-child {
+    border-bottom: 0;
+    padding-bottom: 0
+}
+
+.activity-row .a-main {
+    font-weight: 600
+}
+
+.activity-row .a-sub {
+    display: block;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+    font-weight: 400
+}
+
+.activity-row .a-time {
+    font: 500 11px "DM Mono", monospace;
+    color: var(--muted);
+    white-space: nowrap
+}
+
+@media(max-width:820px) {
+    .home-shell {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr
+    }
+
+    .sidebar {
+        min-height: auto;
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 18px;
+        position: sticky;
+        top: 0;
+        z-index: 3
+    }
+
+    .sidebar-logo {
+        margin-bottom: 0
+    }
+
+    .sidebar-nav {
+        flex-direction: row;
+        margin: 0
+    }
+
+    .sidebar-link {
+        width: auto;
+        padding: 6px 10px;
+        flex-direction: row;
+        gap: 6px
+    }
+
+    .sidebar-link span {
+        display: none
+    }
+
+    .sidebar-foot {
+        border-top: 0;
+        flex-direction: row;
+        padding-top: 0;
+        width: auto
+    }
+
+    .home-main {
+        padding: 26px 20px 44px
+    }
 }

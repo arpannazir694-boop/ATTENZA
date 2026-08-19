@@ -21,14 +21,11 @@ try {
     record = raw ? JSON.parse(raw) : null;
 } catch (_) { record = null; }
 
-// Show Admin panel link only for Admin role
-if (record && String(record.role || '').trim().toLowerCase() === 'admin') {
+// Show Admin panel link only for Admin role — strict check
+const isAdmin = record && String(record.role || '').trim() === 'Admin';
+if (isAdmin) {
     const adminLink = $('adminLink');
-    if (adminLink) {
-        adminLink.hidden = false;
-        adminLink.removeAttribute('data-soon'); // remove "coming soon" — or keep it if panel not built yet
-        adminLink.setAttribute('data-soon', 'Admin panel');
-    }
+    if (adminLink) adminLink.hidden = false;
 }
 
 if (record && record.employee) {

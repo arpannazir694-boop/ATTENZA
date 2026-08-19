@@ -217,7 +217,7 @@ function initQrModal() {
                     qrStatus.textContent = `Signed in as ${result.employee} ✓`;
                     qrStatus.className = 'qr-status found';
                     stopPolling();
-                    setTimeout(closeQrModal, 2200);
+                    saveSignInAndRedirect({ employee: result.employee, branch: result.branch, signedInAt: result.time, qrSession: currentSession }, 1400);
                 }
             } catch (_) {/* keep polling silently */ }
         }, 3000);
@@ -273,9 +273,10 @@ function runMobileConfirmFlow(employeeName, branch, qrSession) {
                 const r = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
                 const result = await r.json();
                 if (result && result.ok) {
-                    setMobileLocation('You’re signed in ✓', `${Math.round(meters)}m from ${branch} · Recorded successfully.`, 'ready');
+                    setMobileLocation('You’re signed in ✓', `${Math.round(meters)}m from ${branch} · Check the desktop screen to continue.`, 'ready');
                     btn.querySelector('span').textContent = 'Signed in';
-                    saveSignInAndRedirect({ ...payload, distance: Math.round(meters) });
+                    // Mobile stays here — it was only used to verify location.
+                    // The desktop (polling checkSession) is what moves on to home.html.
                 } else {
                     btn.disabled = false;
                     setMobileLocation('Sign-in failed', (result && result.message) || 'Please try again.', 'error');

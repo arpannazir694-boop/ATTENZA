@@ -1,15 +1,33 @@
 const API_URL = 'https://script.google.com/macros/s/AKfycbwpuED8aHh5bs_ljk9tFDTITHUmmkCS6HGn3uhE7xvYUqjFDTLMI_H5bMOTiis_8QJY/exec', MAX_DISTANCE_METERS = 150;
 const fallbackData = { gps: [{ branch: 'P-35', latitude: 22.5140997, longitude: 88.4082414 }], employees: [{ name: 'Arpan Nazir', branch: 'P-35' }] };
-let data = fallbackData, verified = null;
-const $ = id => document.getElementById(id), employee = $('employee'), locationCard = $('locationCard'), signIn = $('signIn');
+let data = fallbackData, verified = null, selectedEmployeeIndex = null, passwordVerified = false;
+const $ = id => document.getElementById(id), locationCard = $('locationCard'), signIn = $('signIn');
+const employeeSearch = $('employeeSearch'), employeeCombo = $('employeeCombo'), employeeList = $('employeeList');
+const passwordCard = $('passwordCard'), employeePasswordInput = $('employeePassword'), verifyPasswordBtn = $('verifyPassword'), passwordStatus = $('passwordStatus'), checkLocationBtn = $('checkLocation');
 
 function showToast(message, success = false) { const t = $('toast'); t.textContent = message; t.className = `toast show${success ? ' success' : ''}`; setTimeout(() => t.className = 'toast', 3500) }
 function normalise(raw) { const s = raw.data || raw; return { gps: s.gps || s.GPS || s.branches || [], employees: s.employees || s.employee || s.Employee || [] } }
-async function loadData() { try { const r = await fetch(`${API_URL}?action=getBootstrap`, { redirect: 'follow' }); if (!r.ok) throw Error(); const incoming = normalise(await r.json()); if (incoming.gps.length && incoming.employees.length) data = incoming } catch (_) {/* works with screenshot-provided setup if endpoint is not configured */ } employee.innerHTML = '<option value="">Choose your profile</option>' + data.employees.map((e, i) => `<option value="${i}">${e.name || e['Employee Name']}</option>`).join('') }
-function selectedEmployee() { return data.employees[employee.value] }
+async function loadData() { try { const r = await fetch(`${API_URL}?action=getBootstrap`, { redirect: 'follow' }); if (!r.ok) throw Error(); const incoming = normalise(await r.json()); if (incoming.gps.length && incoming.employees.length) data = incoming } catch (_) {/* works with screenshot-provided setup if endpoint is not configured */ } }
+function selectedEmployee() { return selectedEmployeeIndex !== null ? data.employees[selectedEmployeeIndex] : null }
 function field(item, names) { for (const n of names) if (item && item[n] !== undefined) return item[n] }
 function distanceMeters(a, b, c, d) { const r = 6371e3, p = Math.PI / 180, x = Math.sin((c - a) * p / 2) ** 2 + Math.cos(a * p) * Math.cos(c * p) * Math.sin((d - b) * p / 2) ** 2; return r * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x)) }
 function setLocation(title, text, state = '') { $('locationTitle').textContent = title; $('locationText').textContent = text; locationCard.className = `location-card ${state}` }
+
+// Persist the sign-in result so home.html can greet the employee, then move
+// them on to the home screen a moment after the confirmation is shown.
+function saveSignInAndRedirect(payload, delay = 1100) {
+    try {
+        sessionStorage.setItem('attenza_signin', JSON.stringify({
+            employee: payload.employee,
+            branch: payload.branch,
+            distance: payload.distance,
+            accuracy: payload.accuracy,
+            signedInAt: payload.signedInAt || new Date().toISOString(),
+            viaQr: !!payload.qrSession
+        }));
+    } catch (_) {/* sessionStorage unavailable — home.html falls back to a generic greeting */ }
+    setTimeout(() => { window.location.href = 'home.html'; }, delay);
+}
 
 // ---- Are we the phone that just scanned a desktop's QR code? ----
 const qp = new URLSearchParams(window.location.search);
@@ -23,15 +41,93 @@ if (isMobileQrFlow) {
 }
 
 function runDesktopFlow() {
-    employee.addEventListener('change', () => {
+    function renderEmployeeList(filter = '') {
+        const q = filter.trim().toLowerCase();
+        const items = data.employees
+            .map((e, i) => ({ i, name: field(e, ['name', 'Employee Name']) || '' }))
+            .filter(x => x.name.toLowerCase().includes(q));
+        employeeList.innerHTML = items.length
+            ? items.map(x => `<li role="option" data-index="${x.i}">${x.name}</li>`).join('')
+            : '<li class="combo-empty">No matches found</li>';
+    }
+    function openEmployeeList() { employeeCombo.classList.add('open'); employeeSearch.setAttribute('aria-expanded', 'true') }
+    function closeEmployeeList() { employeeCombo.classList.remove('open'); employeeSearch.setAttribute('aria-expanded', 'false') }
+
+    function resetPasswordStep() {
+        passwordVerified = false;
+        employeePasswordInput.value = ''; employeePasswordInput.disabled = false; employeePasswordInput.type = 'password';
+        $('togglePassword').setAttribute('aria-pressed', 'false'); $('togglePassword').setAttribute('aria-label', 'Show password');
+        passwordStatus.textContent = ''; passwordStatus.className = 'password-status';
+        verifyPasswordBtn.disabled = false; verifyPasswordBtn.textContent = 'VERIFY';
         verified = null; signIn.disabled = true;
-        const e = selectedEmployee(), branch = e && field(e, ['branch', 'Branch']);
-        $('employeeInfo').textContent = branch ? `Assigned to ${branch}` : '';
+        checkLocationBtn.disabled = true;
         setLocation('Location not checked', 'We need your location to sign you in.');
+    }
+
+    function selectEmployee(index) {
+        selectedEmployeeIndex = index;
+        const e = data.employees[index], branch = field(e, ['branch', 'Branch']);
+        employeeSearch.value = field(e, ['name', 'Employee Name']) || '';
+        $('employeeInfo').textContent = branch ? `Assigned to ${branch}` : '';
+        closeEmployeeList();
+        passwordCard.hidden = false;
+        resetPasswordStep();
+    }
+
+    employeeSearch.addEventListener('focus', () => { renderEmployeeList(employeeSearch.value); openEmployeeList(); });
+    employeeSearch.addEventListener('input', () => {
+        if (selectedEmployeeIndex !== null) { selectedEmployeeIndex = null; passwordCard.hidden = true; resetPasswordStep(); }
+        renderEmployeeList(employeeSearch.value); openEmployeeList();
+    });
+    employeeSearch.addEventListener('keydown', ev => {
+        if (ev.key === 'Enter') { ev.preventDefault(); const first = employeeList.querySelector('li[data-index]'); if (first) selectEmployee(Number(first.dataset.index)); }
+        else if (ev.key === 'Escape') closeEmployeeList();
+    });
+    employeeList.addEventListener('click', ev => { const li = ev.target.closest('li[data-index]'); if (li) selectEmployee(Number(li.dataset.index)); });
+    document.addEventListener('click', ev => { if (!employeeCombo.contains(ev.target)) closeEmployeeList(); });
+
+    $('togglePassword').addEventListener('click', () => {
+        const btn = $('togglePassword');
+        const showing = employeePasswordInput.type === 'text';
+        employeePasswordInput.type = showing ? 'password' : 'text';
+        btn.setAttribute('aria-pressed', String(!showing));
+        btn.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
     });
 
-    $('checkLocation').addEventListener('click', () => {
+    verifyPasswordBtn.addEventListener('click', async () => {
+        const e = selectedEmployee();
+        if (!e) return showToast('Please select your profile first.');
+        const password = employeePasswordInput.value.trim();
+        if (!password) { passwordStatus.textContent = 'Please enter your password.'; passwordStatus.className = 'password-status error'; return; }
+        verifyPasswordBtn.disabled = true;
+        passwordStatus.textContent = 'Verifying…'; passwordStatus.className = 'password-status';
+        try {
+            const r = await fetch(API_URL, {
+                method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'verifyPassword', employee: field(e, ['name', 'Employee Name']), branch: field(e, ['branch', 'Branch']), password })
+            });
+            const result = await r.json();
+            if (result && result.ok) {
+                passwordVerified = true;
+                passwordStatus.textContent = 'Password verified ✓'; passwordStatus.className = 'password-status success';
+                employeePasswordInput.disabled = true;
+                verifyPasswordBtn.textContent = 'VERIFIED';
+                checkLocationBtn.disabled = false;
+            } else {
+                passwordVerified = false; verifyPasswordBtn.disabled = false;
+                passwordStatus.textContent = (result && result.message) || 'Incorrect password.';
+                passwordStatus.className = 'password-status error';
+            }
+        } catch (_) {
+            verifyPasswordBtn.disabled = false;
+            passwordStatus.textContent = 'Could not reach the server. Try again.';
+            passwordStatus.className = 'password-status error';
+        }
+    });
+
+    checkLocationBtn.addEventListener('click', () => {
         if (!selectedEmployee()) return showToast('Please select your profile first.');
+        if (!passwordVerified) return showToast('Please verify your password first.');
         if (!navigator.geolocation) return setLocation('Location unavailable', 'This browser does not support location.', 'error');
         setLocation('Checking GPS signal…', 'Please allow precise location access when prompted.');
         navigator.geolocation.getCurrentPosition(pos => {
@@ -58,11 +154,12 @@ function runDesktopFlow() {
         try {
             await fetch(API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
             showToast(`Welcome, ${payload.employee}. Your sign-in is recorded.`, true);
+            saveSignInAndRedirect(payload);
         } catch (_) {
             showToast('Location verified. Could not reach the attendance sheet.');
             signIn.disabled = false;
+            signIn.querySelector('span').textContent = 'Sign in to office';
         }
-        signIn.querySelector('span').textContent = 'Sign in to office';
     });
 
     initQrModal();
@@ -178,6 +275,7 @@ function runMobileConfirmFlow(employeeName, branch, qrSession) {
                 if (result && result.ok) {
                     setMobileLocation('You’re signed in ✓', `${Math.round(meters)}m from ${branch} · Recorded successfully.`, 'ready');
                     btn.querySelector('span').textContent = 'Signed in';
+                    saveSignInAndRedirect({ ...payload, distance: Math.round(meters) });
                 } else {
                     btn.disabled = false;
                     setMobileLocation('Sign-in failed', (result && result.message) || 'Please try again.', 'error');

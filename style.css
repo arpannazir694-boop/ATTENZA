@@ -941,7 +941,7 @@ body {
 .stat-card {
     border: 1px solid transparent;
     background: #fff;
-    padding: 16px 14px;
+    padding: 32px 14px;
     text-align: center
 }
 
@@ -979,9 +979,9 @@ body {
 }
 
 .stat-card .stat-value {
-    font: 700 30px "Space Grotesk", sans-serif;
+    font: 700 38px "Space Grotesk", sans-serif;
     letter-spacing: -.5px;
-    margin: 0 0 3px;
+    margin: 0 0 5px;
     color: var(--ink)
 }
 

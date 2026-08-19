@@ -21,6 +21,16 @@ try {
     record = raw ? JSON.parse(raw) : null;
 } catch (_) { record = null; }
 
+// Show Admin panel link only for Admin role
+if (record && String(record.role || '').trim().toLowerCase() === 'admin') {
+    const adminLink = $('adminLink');
+    if (adminLink) {
+        adminLink.hidden = false;
+        adminLink.removeAttribute('data-soon'); // remove "coming soon" — or keep it if panel not built yet
+        adminLink.setAttribute('data-soon', 'Admin panel');
+    }
+}
+
 if (record && record.employee) {
     const firstName = String(record.employee).trim().split(' ')[0];
     $('greetingTitle').innerHTML = `Good to see<br>you, <em style="color:var(--coral);font-style:normal">${firstName}</em>.`;

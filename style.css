@@ -476,10 +476,21 @@ body {
     margin-bottom: 12px
 }
 
-.qr-box img,
-.qr-box canvas,
-.qr-box table {
-    display: block !important
+#qrCodeCanvas {
+    position: relative;
+    width: 190px;
+    height: 190px
+}
+
+#qrCodeCanvas img,
+#qrCodeCanvas canvas,
+#qrCodeCanvas table {
+    display: block !important;
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 190px !important;
+    height: 190px !important
 }
 
 .qr-status {
@@ -551,5 +562,10 @@ body {
 }
 
 .mobile-flow .form-wrap {
+    margin: auto;
     max-width: 420px
+}
+
+#mobileConfirm {
+    display: none
 }

@@ -74,7 +74,7 @@ function runDesktopFlow() {
 
 // ---- Desktop side: generate a QR code that a phone scans ----
 function initQrModal() {
-    const qrModal = $('qrModal'), openQrBtn = $('openQr'), closeQrBtn = $('closeQr'), qrCodeCanvas = $('qrCodeCanvas'), qrStatus = $('qrStatus'), qrLinkInput = $('qrLink'), copyQrLinkBtn = $('copyQrLink');
+    const qrModal = $('qrModal'), openQrBtn = $('openQr'), closeQrBtn = $('closeQr'), qrCodeCanvas = $('qrCodeCanvas'), qrStatus = $('qrStatus');
     let qrCodeWidget = null, pollTimer = null, currentSession = null;
 
     function makeSessionId() {
@@ -95,7 +95,6 @@ function initQrModal() {
         } else {
             qrCodeCanvas.textContent = 'QR library failed to load — use the link below instead.';
         }
-        qrLinkInput.value = url;
         qrStatus.textContent = 'Waiting for you to scan…';
         qrStatus.className = 'qr-status';
 
@@ -131,10 +130,6 @@ function initQrModal() {
     openQrBtn.addEventListener('click', openQrModal);
     closeQrBtn.addEventListener('click', closeQrModal);
     qrModal.addEventListener('click', e => { if (e.target === qrModal) closeQrModal() });
-    copyQrLinkBtn.addEventListener('click', async () => {
-        try { await navigator.clipboard.writeText(qrLinkInput.value); showToast('Link copied.') }
-        catch (_) { qrLinkInput.select(); document.execCommand('copy'); showToast('Link copied.') }
-    });
 }
 
 // ---- Phone side: the page that opens after scanning the QR ----
@@ -142,6 +137,7 @@ function runMobileConfirmFlow(employeeName, branch, qrSession) {
     document.querySelector('.app-shell').style.display = 'none';
     const screen = $('mobileConfirm');
     screen.hidden = false;
+    screen.style.display = 'flex';
     $('mobileEmployeeName').textContent = employeeName;
     $('mobileBranchName').textContent = branch;
     $('mobileToday').textContent = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }).format(new Date()).toUpperCase();

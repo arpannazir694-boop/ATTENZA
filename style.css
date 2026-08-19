@@ -877,7 +877,7 @@ body {
 }
 
 .home-greeting {
-    margin: 0 0 36px
+    margin: 0 0 24px
 }
 
 .home-greeting .step-label {
@@ -905,7 +905,7 @@ body {
     align-items: center;
     gap: 16px;
     padding: 22px 24px;
-    margin-bottom: 28px
+    margin-bottom: 20px
 }
 
 .status-card .status-icon {
@@ -935,26 +935,54 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 12px;
-    margin-bottom: 36px
+    margin-bottom: 32px
 }
 
 .stat-card {
-    border: 1px solid var(--line);
+    border: 1px solid transparent;
     background: #fff;
-    padding: 12px 14px
+    padding: 16px 14px;
+    text-align: center
+}
+
+.stat-card:nth-child(1) {
+    background: #fdeee9;
+    border-color: #f4c9bb
+}
+
+.stat-card:nth-child(2) {
+    background: #e9f4ee;
+    border-color: #b9d9c6
+}
+
+.stat-card:nth-child(3) {
+    background: #eef1fb;
+    border-color: #c4cdec
 }
 
 .stat-card .stat-label {
     font: 500 9px "DM Mono", monospace;
     letter-spacing: 1px;
-    color: var(--coral);
-    margin: 0 0 6px
+    margin: 0 0 8px
+}
+
+.stat-card:nth-child(1) .stat-label {
+    color: #d97a5f
+}
+
+.stat-card:nth-child(2) .stat-label {
+    color: #3f8f6b
+}
+
+.stat-card:nth-child(3) .stat-label {
+    color: #5866b0
 }
 
 .stat-card .stat-value {
     font: 700 30px "Space Grotesk", sans-serif;
     letter-spacing: -.5px;
-    margin: 0 0 3px
+    margin: 0 0 3px;
+    color: var(--ink)
 }
 
 .stat-card .stat-note {

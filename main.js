@@ -1,6 +1,6 @@
 const API_URL = 'https://script.google.com/macros/s/AKfycbwpuED8aHh5bs_ljk9tFDTITHUmmkCS6HGn3uhE7xvYUqjFDTLMI_H5bMOTiis_8QJY/exec', MAX_DISTANCE_METERS = 150;
 const fallbackData = { gps: [{ branch: 'P-35', latitude: 22.5140997, longitude: 88.4082414 }], employees: [{ name: 'Arpan Nazir', branch: 'P-35' }] };
-let data = fallbackData, verified = null, selectedEmployeeIndex = null, passwordVerified = false;
+let data = fallbackData, verified = null, selectedEmployeeIndex = null, passwordVerified = false, verifiedRole = null;
 const $ = id => document.getElementById(id), locationCard = $('locationCard'), signIn = $('signIn');
 const employeeSearch = $('employeeSearch'), employeeCombo = $('employeeCombo'), employeeList = $('employeeList');
 const passwordCard = $('passwordCard'), employeePasswordInput = $('employeePassword'), verifyPasswordBtn = $('verifyPassword'), passwordStatus = $('passwordStatus'), checkLocationBtn = $('checkLocation');
@@ -23,7 +23,8 @@ function saveSignInAndRedirect(payload, delay = 1100) {
             distance: payload.distance,
             accuracy: payload.accuracy,
             signedInAt: payload.signedInAt || new Date().toISOString(),
-            viaQr: !!payload.qrSession
+            viaQr: !!payload.qrSession,
+            role: payload.role || null
         }));
     } catch (_) {/* sessionStorage unavailable — home.html falls back to a generic greeting */ }
     setTimeout(() => { window.location.href = 'home.html'; }, delay);
@@ -54,7 +55,7 @@ function runDesktopFlow() {
     function closeEmployeeList() { employeeCombo.classList.remove('open'); employeeSearch.setAttribute('aria-expanded', 'false') }
 
     function resetPasswordStep() {
-        passwordVerified = false;
+        passwordVerified = false; verifiedRole = null;
         employeePasswordInput.value = ''; employeePasswordInput.disabled = false; employeePasswordInput.type = 'password';
         $('togglePassword').setAttribute('aria-pressed', 'false'); $('togglePassword').setAttribute('aria-label', 'Show password');
         passwordStatus.textContent = ''; passwordStatus.className = 'password-status';
@@ -109,6 +110,7 @@ function runDesktopFlow() {
             const result = await r.json();
             if (result && result.ok) {
                 passwordVerified = true;
+                verifiedRole = result.role || 'Employee';
                 passwordStatus.textContent = 'Password verified ✓'; passwordStatus.className = 'password-status success';
                 employeePasswordInput.disabled = true;
                 verifyPasswordBtn.textContent = 'VERIFIED';
@@ -150,7 +152,7 @@ function runDesktopFlow() {
         if (!verified) return;
         const e = selectedEmployee();
         signIn.disabled = true; signIn.querySelector('span').textContent = 'Signing you in…';
-        const payload = { action: 'signIn', employee: field(e, ['name', 'Employee Name']), branch: field(e, ['branch', 'Branch']), ...verified, signedInAt: new Date().toISOString() };
+        const payload = { action: 'signIn', employee: field(e, ['name', 'Employee Name']), branch: field(e, ['branch', 'Branch']), ...verified, signedInAt: new Date().toISOString(), role: verifiedRole };
         try {
             await fetch(API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
             showToast(`Welcome, ${payload.employee}. Your sign-in is recorded.`, true);

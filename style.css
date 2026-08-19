@@ -876,8 +876,16 @@ body {
     color: #66758e
 }
 
+.home-top-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 420px);
+    gap: 28px;
+    align-items: center;
+    margin: 0 0 28px
+}
+
 .home-greeting {
-    margin: 0 0 24px
+    margin: 0
 }
 
 .home-greeting .step-label {
@@ -905,7 +913,7 @@ body {
     align-items: center;
     gap: 16px;
     padding: 22px 24px;
-    margin-bottom: 20px
+    margin: 0
 }
 
 .status-card .status-icon {
@@ -941,7 +949,7 @@ body {
 .stat-card {
     border: 1px solid transparent;
     background: #fff;
-    padding: 32px 14px;
+    padding: 20px 14px;
     text-align: center
 }
 
@@ -979,9 +987,9 @@ body {
 }
 
 .stat-card .stat-value {
-    font: 700 38px "Space Grotesk", sans-serif;
+    font: 700 32px "Space Grotesk", sans-serif;
     letter-spacing: -.5px;
-    margin: 0 0 5px;
+    margin: 0 0 4px;
     color: var(--ink)
 }
 
@@ -1081,5 +1089,9 @@ body {
 
     .home-main {
         padding: 26px 20px 44px
+    }
+
+    .home-top-row {
+        grid-template-columns: 1fr
     }
 }

@@ -110,7 +110,7 @@ function runDesktopFlow() {
             const result = await r.json();
             if (result && result.ok) {
                 passwordVerified = true;
-                verifiedRole = result.role || 'Employee';
+                verifiedRole = result.role || null;
                 passwordStatus.textContent = 'Password verified ✓'; passwordStatus.className = 'password-status success';
                 employeePasswordInput.disabled = true;
                 verifyPasswordBtn.textContent = 'VERIFIED';

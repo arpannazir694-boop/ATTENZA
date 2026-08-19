@@ -1,0 +1,555 @@
+:root {
+    --ink: #10203a;
+    --muted: #71809a;
+    --paper: #f6f4ef;
+    --line: #d8dce1;
+    --navy: #10203a;
+    --coral: #ef735a;
+    --mint: #c9e5d9
+}
+
+* {
+    box-sizing: border-box
+}
+
+body {
+    margin: 0;
+    color: var(--ink);
+    font-family: Manrope, Arial, sans-serif;
+    background: var(--paper)
+}
+
+.app-shell {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: minmax(360px, 43%) 1fr
+}
+
+.brand-panel {
+    min-height: 100vh;
+    background: var(--navy);
+    color: #f7f3e9;
+    padding: 42px clamp(34px, 6vw, 92px);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden
+}
+
+.brand-panel:after {
+    content: "";
+    position: absolute;
+    width: 440px;
+    height: 440px;
+    border: 1px solid rgba(201, 229, 217, .2);
+    border-radius: 50%;
+    right: -255px;
+    top: 180px;
+    box-shadow: 0 0 0 48px rgba(201, 229, 217, .03), 0 0 0 96px rgba(201, 229, 217, .02)
+}
+
+.brand {
+    font-family: "DM Mono", monospace;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 2.1px;
+    display: flex;
+    align-items: center;
+    gap: 12px
+}
+
+.brand-mark {
+    display: grid;
+    place-items: center;
+    width: 29px;
+    height: 29px;
+    border: 1px solid var(--mint);
+    border-radius: 50%;
+    font-family: "Playfair Display", serif;
+    font-size: 20px;
+    letter-spacing: 0;
+    color: var(--mint)
+}
+
+.brand-copy {
+    margin: auto 0;
+    position: relative;
+    z-index: 1
+}
+
+.eyebrow,
+.step-label {
+    font: 500 11px "DM Mono", monospace;
+    letter-spacing: 1.5px;
+    color: var(--coral);
+    margin: 0 0 18px
+}
+
+.brand-copy h1 {
+    font: 800 clamp(42px, 5vw, 76px)/.98 "Playfair Display", serif;
+    letter-spacing: -2.8px;
+    margin: 0 0 27px
+}
+
+.brand-copy h1 em {
+    font-weight: 700;
+    color: var(--mint)
+}
+
+.brand-copy>p:last-child {
+    max-width: 315px;
+    color: #b6c1d2;
+    font-size: 14px;
+    line-height: 1.8
+}
+
+.signal-card {
+    border-top: 1px solid rgba(255, 255, 255, .2);
+    padding-top: 21px;
+    font: 500 10px "DM Mono", monospace;
+    letter-spacing: 1px;
+    color: var(--mint);
+    position: relative;
+    z-index: 1
+}
+
+.signal-card small {
+    display: block;
+    font: 400 11px Manrope, sans-serif;
+    letter-spacing: 0;
+    color: #aebbcf;
+    margin: 10px 0 0 23px
+}
+
+.pulse {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    background: var(--mint);
+    border-radius: 50%;
+    margin-right: 12px;
+    box-shadow: 0 0 0 4px rgba(201, 229, 217, .15)
+}
+
+.panel-footer {
+    font: 400 10px "DM Mono", monospace;
+    letter-spacing: 1px;
+    color: #7f8da4;
+    margin: 42px 0 0
+}
+
+.workspace {
+    padding: 38px clamp(32px, 9vw, 150px);
+    display: flex;
+    flex-direction: column;
+    background: #fffdf9
+}
+
+.workspace header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font: 500 10px "DM Mono", monospace;
+    letter-spacing: 1px;
+    color: #66758e
+}
+
+.date-chip {
+    border: 1px solid var(--line);
+    padding: 8px 11px
+}
+
+.secure b {
+    font-size: 14px;
+    color: #69ab86;
+    vertical-align: -1px;
+    margin-right: 5px
+}
+
+.form-wrap {
+    max-width: 467px;
+    width: 100%;
+    margin: auto 0
+}
+
+.form-wrap h2 {
+    font: 800 clamp(37px, 4.2vw, 59px)/.97 "Playfair Display", serif;
+    letter-spacing: -2px;
+    margin: 0 0 20px
+}
+
+.intro {
+    font-size: 14px;
+    line-height: 1.75;
+    color: var(--muted);
+    margin: 0 0 35px;
+    max-width: 390px
+}
+
+.form-wrap label {
+    display: block;
+    font: 500 10px "DM Mono", monospace;
+    letter-spacing: 1.3px;
+    margin: 0 0 9px
+}
+
+.select-wrap {
+    height: 58px;
+    border: 1px solid var(--ink);
+    display: flex;
+    align-items: center;
+    padding: 0 17px;
+    position: relative;
+    background: #fff
+}
+
+.select-wrap:focus-within {
+    outline: 3px solid #c9e5d9;
+    outline-offset: 2px
+}
+
+.select-wrap select {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    outline: 0;
+    width: 100%;
+    font: 600 14px Manrope, sans-serif;
+    color: var(--ink);
+    cursor: pointer
+}
+
+.select-wrap span {
+    font-size: 21px;
+    pointer-events: none
+}
+
+.employee-info {
+    height: 28px;
+    padding-top: 8px;
+    font-size: 12px;
+    color: var(--muted)
+}
+
+.location-card {
+    border: 1px solid var(--line);
+    padding: 15px 14px;
+    min-height: 78px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 10px 0 15px;
+    transition: .2s
+}
+
+.location-card.ready {
+    border-color: #77ad91;
+    background: #f5fbf7
+}
+
+.location-card.error {
+    border-color: #d07a74;
+    background: #fff9f7
+}
+
+.location-icon {
+    width: 39px;
+    height: 39px;
+    border-radius: 50%;
+    background: #edf0f3;
+    display: grid;
+    place-items: center;
+    color: var(--ink);
+    font-size: 22px;
+    flex: 0 0 auto
+}
+
+.ready .location-icon {
+    background: var(--mint)
+}
+
+.location-card strong {
+    font-size: 12px
+}
+
+.location-card p {
+    font-size: 11px;
+    color: var(--muted);
+    margin: 4px 0 0;
+    line-height: 1.4
+}
+
+.check-btn {
+    margin-left: auto;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--ink);
+    font: 500 10px "DM Mono", monospace;
+    letter-spacing: .8px;
+    padding: 5px 0;
+    cursor: pointer;
+    color: var(--ink)
+}
+
+.signin-btn {
+    width: 100%;
+    height: 61px;
+    background: var(--ink);
+    color: #fff;
+    border: 0;
+    font: 700 13px Manrope, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 21px;
+    cursor: pointer;
+    transition: transform .2s, background .2s
+}
+
+.signin-btn:not(:disabled):hover {
+    background: #203b61;
+    transform: translateY(-2px)
+}
+
+.signin-btn:disabled {
+    background: #adb5c0;
+    cursor: not-allowed
+}
+
+.arrow {
+    font-size: 25px;
+    font-weight: 400
+}
+
+.privacy-note {
+    text-align: center;
+    margin: 15px 0 0;
+    font-size: 10px;
+    color: #8994a4
+}
+
+.toast {
+    position: fixed;
+    left: 50%;
+    bottom: 25px;
+    translate: -50% 20px;
+    background: var(--ink);
+    color: #fff;
+    padding: 13px 18px;
+    font-size: 13px;
+    opacity: 0;
+    pointer-events: none;
+    transition: .25s;
+    box-shadow: 0 8px 30px #10203a33;
+    max-width: 90vw;
+    text-align: center
+}
+
+.toast.show {
+    opacity: 1;
+    translate: -50% 0
+}
+
+.toast.success {
+    background: #27684f
+}
+
+@media(max-width:760px) {
+    .app-shell {
+        display: block
+    }
+
+    .brand-panel {
+        min-height: auto;
+        padding: 25px 27px 30px
+    }
+
+    .brand-copy {
+        margin: 55px 0 40px
+    }
+
+    .brand-copy h1 {
+        font-size: 44px
+    }
+
+    .brand-copy>p:last-child {
+        display: none
+    }
+
+    .signal-card,
+    .panel-footer {
+        display: none
+    }
+
+    .workspace {
+        min-height: calc(100vh - 278px);
+        padding: 30px 27px
+    }
+
+    .form-wrap {
+        margin: 44px auto 18px
+    }
+
+    .workspace header {
+        position: absolute;
+        top: 309px;
+        left: 27px;
+        right: 27px
+    }
+
+    .form-wrap h2 {
+        font-size: 41px
+    }
+}
+
+.qr-link {
+    display: block;
+    margin: 16px auto 0;
+    border: 0;
+    border-bottom: 1px solid var(--ink);
+    background: none;
+    font: 500 10px "DM Mono", monospace;
+    letter-spacing: .4px;
+    cursor: pointer;
+    color: var(--ink)
+}
+
+.qr-link span {
+    font-size: 16px;
+    vertical-align: -2px
+}
+
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(16, 32, 58, .68);
+    padding: 22px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 5
+}
+
+.modal.open {
+    display: flex
+}
+
+.modal-card {
+    width: min(100%, 460px);
+    max-height: 95vh;
+    overflow: auto;
+    background: #fffdf9;
+    padding: 34px;
+    position: relative;
+    box-shadow: 0 24px 70px #0004
+}
+
+.modal-card h3 {
+    font: 800 32px/1.04 "Playfair Display", serif;
+    margin: 0 0 12px;
+    letter-spacing: -1px
+}
+
+.modal-copy {
+    font-size: 12px;
+    line-height: 1.65;
+    color: var(--muted);
+    margin: 0 0 19px
+}
+
+.modal-close {
+    position: absolute;
+    top: 13px;
+    right: 15px;
+    border: 0;
+    background: none;
+    font-size: 27px;
+    cursor: pointer;
+    color: var(--ink)
+}
+
+.qr-box {
+    padding: 22px;
+    background: #e9eef0;
+    display: grid;
+    place-items: center;
+    margin-bottom: 12px
+}
+
+.qr-box img,
+.qr-box canvas,
+.qr-box table {
+    display: block !important
+}
+
+.qr-status {
+    text-align: center;
+    font: 500 11px "DM Mono", monospace;
+    letter-spacing: .5px;
+    color: var(--muted);
+    margin: 0 0 18px
+}
+
+.qr-status.found {
+    color: #3f8f6b
+}
+
+.camera-btn {
+    width: 100%;
+    height: 43px;
+    background: #c9e5d9;
+    border: 1px solid var(--ink);
+    font: 700 11px Manrope, sans-serif;
+    letter-spacing: .4px;
+    cursor: pointer
+}
+
+.or {
+    text-align: center;
+    border-bottom: 1px solid var(--line);
+    height: 18px;
+    margin: 17px 0 22px
+}
+
+.or span {
+    background: #fffdf9;
+    padding: 0 10px;
+    font: 500 10px "DM Mono", monospace;
+    color: var(--muted)
+}
+
+.modal label {
+    display: block;
+    font: 500 10px "DM Mono", monospace;
+    letter-spacing: 1.3px;
+    margin: 0 0 9px
+}
+
+.link-row {
+    display: flex;
+    gap: 8px
+}
+
+.link-row input {
+    flex: 1;
+    height: 47px;
+    border: 1px solid var(--ink);
+    background: #fff;
+    padding: 0 12px;
+    font: 500 11px "DM Mono", monospace;
+    min-width: 0
+}
+
+.link-row .camera-btn {
+    width: auto;
+    padding: 0 16px;
+    flex: 0 0 auto
+}
+
+.mobile-flow {
+    min-height: 100vh
+}
+
+.mobile-flow .form-wrap {
+    max-width: 420px
+}

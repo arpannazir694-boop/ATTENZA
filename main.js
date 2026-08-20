@@ -1,9 +1,12 @@
 const API_URL = 'https://script.google.com/macros/s/AKfycbwpuED8aHh5bs_ljk9tFDTITHUmmkCS6HGn3uhE7xvYUqjFDTLMI_H5bMOTiis_8QJY/exec', MAX_DISTANCE_METERS = 150;
 const fallbackData = { gps: [{ branch: 'P-35', latitude: 22.5140997, longitude: 88.4082414 }], employees: [{ name: 'Arpan Nazir', branch: 'P-35' }] };
 let data = fallbackData, verified = null, selectedEmployeeIndex = null, passwordVerified = false, verifiedRole = null;
+let verifiedBranchRequest = null, branchRequestPollTimer = null;
 const $ = id => document.getElementById(id), locationCard = $('locationCard'), signIn = $('signIn');
 const employeeSearch = $('employeeSearch'), employeeCombo = $('employeeCombo'), employeeList = $('employeeList');
 const passwordCard = $('passwordCard'), employeePasswordInput = $('employeePassword'), verifyPasswordBtn = $('verifyPassword'), passwordStatus = $('passwordStatus'), checkLocationBtn = $('checkLocation');
+const toggleBranchRequestBtn = $('toggleBranchRequest'), branchRequestBlock = $('branchRequestBlock'), branchSelect = $('branchSelect');
+const branchLocationCard = $('branchLocationCard'), checkBranchLocationBtn = $('checkBranchLocation'), requestApprovalBtn = $('requestApprovalBtn'), branchRequestStatus = $('branchRequestStatus');
 
 function showToast(message, success = false) { const t = $('toast'); t.textContent = message; t.className = `toast show${success ? ' success' : ''}`; setTimeout(() => t.className = 'toast', 3500) }
 function normalise(raw) { const s = raw.data || raw; return { gps: s.gps || s.GPS || s.branches || [], employees: s.employees || s.employee || s.Employee || [] } }
@@ -24,6 +27,7 @@ function saveSignInAndRedirect(payload, delay = 1100) {
             accuracy: payload.accuracy,
             signedInAt: payload.signedInAt || new Date().toISOString(),
             viaQr: !!payload.qrSession,
+            viaApproval: !!payload.viaApproval,
             role: payload.role || null
         }));
     } catch (_) {/* sessionStorage unavailable — home.html falls back to a generic greeting */ }
@@ -63,6 +67,7 @@ function runDesktopFlow() {
         verified = null; signIn.disabled = true;
         checkLocationBtn.disabled = true;
         setLocation('Location not checked', 'We need your location to sign you in.');
+        resetBranchRequest();
     }
 
     function selectEmployee(index) {
@@ -165,6 +170,7 @@ function runDesktopFlow() {
     });
 
     initQrModal();
+    initBranchRequestFlow();
 
     $('year').textContent = new Date().getFullYear();
     $('today').textContent = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }).format(new Date()).toUpperCase();
@@ -229,6 +235,136 @@ function initQrModal() {
     openQrBtn.addEventListener('click', openQrModal);
     closeQrBtn.addEventListener('click', closeQrModal);
     qrModal.addEventListener('click', e => { if (e.target === qrModal) closeQrModal() });
+}
+
+// ---- Employee at a branch other than their assigned one: request approval ----
+function resetBranchRequest() {
+    verifiedBranchRequest = null;
+    if (branchRequestPollTimer) { clearInterval(branchRequestPollTimer); branchRequestPollTimer = null; }
+    branchRequestBlock.hidden = true;
+    branchRequestStatus.textContent = ''; branchRequestStatus.className = 'password-status';
+    requestApprovalBtn.disabled = true;
+    requestApprovalBtn.querySelector('span').textContent = 'Request approval from admin';
+    setBranchLocation('Location not checked', 'Pick a branch above, then check your location.');
+    populateBranchSelect();
+}
+
+function setBranchLocation(title, text, state = '') {
+    $('branchLocationTitle').textContent = title;
+    $('branchLocationText').textContent = text;
+    branchLocationCard.className = `location-card ${state}`;
+}
+
+function populateBranchSelect() {
+    const e = selectedEmployee();
+    const assignedBranch = e ? field(e, ['branch', 'Branch']) : null;
+    const options = data.gps
+        .map(g => field(g, ['branch', 'Branch Name', 'Branch']))
+        .filter(b => b && String(b).trim() !== String(assignedBranch || '').trim());
+    branchSelect.innerHTML = options.length
+        ? options.map(b => `<option value="${b}">${b}</option>`).join('')
+        : '<option value="">No other branches available</option>';
+}
+
+function initBranchRequestFlow() {
+    toggleBranchRequestBtn.addEventListener('click', () => {
+        if (!selectedEmployee()) return showToast('Please select your profile first.');
+        if (!passwordVerified) return showToast('Please verify your password first.');
+        branchRequestBlock.hidden = !branchRequestBlock.hidden;
+        if (!branchRequestBlock.hidden) populateBranchSelect();
+    });
+
+    branchSelect.addEventListener('change', () => {
+        verifiedBranchRequest = null;
+        requestApprovalBtn.disabled = true;
+        setBranchLocation('Location not checked', 'Pick a branch above, then check your location.');
+    });
+
+    checkBranchLocationBtn.addEventListener('click', () => {
+        if (!branchSelect.value) return showToast('No other branch is available to select.');
+        if (!navigator.geolocation) return setBranchLocation('Location unavailable', 'This browser does not support location.', 'error');
+        setBranchLocation('Checking GPS signal…', 'Please allow precise location access when prompted.');
+        navigator.geolocation.getCurrentPosition(pos => {
+            const branch = branchSelect.value;
+            const office = data.gps.find(x => String(field(x, ['branch', 'Branch Name', 'Branch'])).trim() === String(branch).trim());
+            if (!office) return setBranchLocation('Branch location unavailable', `No GPS record found for ${branch}.`, 'error');
+            const accuracy = Math.round(pos.coords.accuracy || 0), meters = distanceMeters(pos.coords.latitude, pos.coords.longitude, Number(field(office, ['latitude', 'Latitude'])), Number(field(office, ['longitude', 'Longitude'])));
+            if (accuracy > 200) { verifiedBranchRequest = null; requestApprovalBtn.disabled = true; return setBranchLocation('GPS signal is not precise enough', `Current accuracy is ±${accuracy}m. Turn on Precise location, then check again.`, 'error') }
+            if (meters <= MAX_DISTANCE_METERS) {
+                verifiedBranchRequest = { branch, latitude: pos.coords.latitude, longitude: pos.coords.longitude, accuracy: pos.coords.accuracy, distance: Math.round(meters) };
+                setBranchLocation('You’re at this branch', `${Math.round(meters)}m from ${branch} · GPS accuracy ±${accuracy}m`, 'ready');
+                requestApprovalBtn.disabled = false;
+            } else {
+                verifiedBranchRequest = null; requestApprovalBtn.disabled = true;
+                setBranchLocation('Not within range', `GPS says ${Math.round(meters)}m from ${branch} (accuracy ±${accuracy}m).`, 'error');
+            }
+        }, err => setBranchLocation('Location access needed', err.code === 1 ? 'Allow precise location permission, then try again.' : 'Could not get your location. Try again outdoors.', 'error'), { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+    });
+
+    requestApprovalBtn.addEventListener('click', async () => {
+        if (!verifiedBranchRequest) return;
+        const e = selectedEmployee();
+        requestApprovalBtn.disabled = true;
+        requestApprovalBtn.querySelector('span').textContent = 'Sending request…';
+        branchRequestStatus.textContent = ''; branchRequestStatus.className = 'password-status';
+        try {
+            const r = await fetch(API_URL, {
+                method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({
+                    action: 'requestBranchSignIn',
+                    employee: field(e, ['name', 'Employee Name']),
+                    requestedBranch: verifiedBranchRequest.branch,
+                    latitude: verifiedBranchRequest.latitude,
+                    longitude: verifiedBranchRequest.longitude,
+                    accuracy: verifiedBranchRequest.accuracy
+                })
+            });
+            const result = await r.json();
+            if (result && result.ok) {
+                branchRequestStatus.textContent = result.alreadyPending ? 'Already waiting for admin approval…' : 'Request sent — waiting for admin approval…';
+                branchRequestStatus.className = 'password-status success';
+                requestApprovalBtn.querySelector('span').textContent = 'Waiting for approval…';
+                pollRequestStatus(result.requestId, field(e, ['name', 'Employee Name']), verifiedBranchRequest.branch, verifiedBranchRequest.distance, verifiedBranchRequest.accuracy);
+            } else {
+                requestApprovalBtn.disabled = false;
+                requestApprovalBtn.querySelector('span').textContent = 'Request approval from admin';
+                branchRequestStatus.textContent = (result && result.message) || 'Could not send the request.';
+                branchRequestStatus.className = 'password-status error';
+            }
+        } catch (_) {
+            requestApprovalBtn.disabled = false;
+            requestApprovalBtn.querySelector('span').textContent = 'Request approval from admin';
+            branchRequestStatus.textContent = 'Could not reach the server. Try again.';
+            branchRequestStatus.className = 'password-status error';
+        }
+    });
+}
+
+function pollRequestStatus(requestId, employeeName, branch, distance, accuracy) {
+    if (branchRequestPollTimer) clearInterval(branchRequestPollTimer);
+    branchRequestPollTimer = setInterval(async () => {
+        try {
+            const r = await fetch(`${API_URL}?action=checkRequestStatus&requestId=${encodeURIComponent(requestId)}`);
+            const result = await r.json();
+            if (result && result.ok && result.found) {
+                if (result.status === 'Approved') {
+                    clearInterval(branchRequestPollTimer); branchRequestPollTimer = null;
+                    branchRequestStatus.textContent = 'Approved ✓ Signing you in…';
+                    branchRequestStatus.className = 'password-status success';
+                    saveSignInAndRedirect({
+                        employee: employeeName, branch: branch, distance: distance, accuracy: accuracy,
+                        signedInAt: result.reviewedAt || new Date().toISOString(), role: verifiedRole, viaApproval: true
+                    }, 1200);
+                } else if (result.status === 'Rejected') {
+                    clearInterval(branchRequestPollTimer); branchRequestPollTimer = null;
+                    requestApprovalBtn.disabled = false;
+                    requestApprovalBtn.querySelector('span').textContent = 'Request approval from admin';
+                    branchRequestStatus.textContent = 'Your admin declined this request.';
+                    branchRequestStatus.className = 'password-status error';
+                }
+            }
+        } catch (_) {/* keep polling silently */ }
+    }, 3000);
 }
 
 // ---- Phone side: the page that opens after scanning the QR ----

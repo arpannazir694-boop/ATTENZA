@@ -606,6 +606,69 @@ body {
     vertical-align: -2px
 }
 
+.branch-request {
+    border: 1px dashed var(--line);
+    padding: 14px;
+    margin: 6px 0 15px;
+    background: #fbfaf7
+}
+
+.branch-request .location-card {
+    margin: 10px 0
+}
+
+.branch-request .signin-btn {
+    height: 52px
+}
+
+.request-row {
+    align-items: center;
+    gap: 14px
+}
+
+.request-actions {
+    display: flex;
+    gap: 8px;
+    flex: 0 0 auto
+}
+
+.approve-btn,
+.reject-btn {
+    border: 1px solid var(--ink);
+    background: transparent;
+    padding: 8px 14px;
+    font: 700 10px "DM Mono", monospace;
+    letter-spacing: .5px;
+    cursor: pointer;
+    transition: .2s;
+    white-space: nowrap
+}
+
+.approve-btn {
+    background: var(--ink);
+    color: #fff
+}
+
+.approve-btn:hover {
+    background: #203b61
+}
+
+.reject-btn {
+    color: var(--muted);
+    border-color: var(--line)
+}
+
+.reject-btn:hover {
+    border-color: #c1554a;
+    color: #c1554a
+}
+
+.approve-btn:disabled,
+.reject-btn:disabled {
+    opacity: .5;
+    cursor: not-allowed
+}
+
 .modal {
     position: fixed;
     inset: 0;

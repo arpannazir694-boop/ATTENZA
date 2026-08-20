@@ -176,13 +176,21 @@ function runDesktopFlow() {
         // the earlier check-in's location/distance instead of recalculating it.
         if (autoSignInInfo) {
             signIn.disabled = true; signIn.querySelector('span').textContent = 'Signing you in…';
-            const payload = { action: 'autoSignIn', employee: field(e, ['name', 'Employee Name']), branch: autoSignInInfo.branch, signedInAt: new Date().toISOString(), role: verifiedRole };
+            const payload = { action: 'autoSignIn', employee: field(e, ['name', 'Employee Name']), branch: autoSignInInfo.branch, role: verifiedRole };
             try {
                 const r = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
                 const result = await r.json();
                 if (result && result.ok) {
-                    showToast(`Welcome back, ${payload.employee}. Signed in.`, true);
-                    saveSignInAndRedirect({ ...payload, distance: autoSignInInfo.distance, accuracy: autoSignInInfo.accuracy });
+                    showToast(`Welcome back, ${payload.employee}.`, true);
+                    // Use the ORIGINAL sign-in time/branch/distance the server sends back —
+                    // this is a re-login, not a new attendance event, so nothing new is stamped.
+                    saveSignInAndRedirect({
+                        employee: payload.employee, branch: result.branch || autoSignInInfo.branch,
+                        distance: result.distanceMeters ?? autoSignInInfo.distance,
+                        accuracy: result.accuracyMeters ?? autoSignInInfo.accuracy,
+                        signedInAt: result.signedInAt || autoSignInInfo.signedInAt,
+                        role: verifiedRole
+                    });
                 } else {
                     showToast((result && result.message) || 'Could not sign in.');
                     signIn.disabled = false; signIn.querySelector('span').textContent = 'Sign in to office';

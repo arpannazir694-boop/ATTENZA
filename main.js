@@ -219,7 +219,7 @@ function initQrModal() {
                     qrStatus.textContent = `Signed in as ${result.employee} ✓`;
                     qrStatus.className = 'qr-status found';
                     stopPolling();
-                    saveSignInAndRedirect({ employee: result.employee, branch: result.branch, signedInAt: result.time, qrSession: currentSession }, 1400);
+                    saveSignInAndRedirect({ employee: result.employee, branch: result.branch, signedInAt: result.time, qrSession: currentSession, role: result.role }, 1400);
                 }
             } catch (_) {/* keep polling silently */ }
         }, 3000);

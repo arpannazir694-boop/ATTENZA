@@ -1077,6 +1077,34 @@ body {
     margin: 0 0 16px
 }
 
+.duration-panel {
+    text-align: center;
+    background: linear-gradient(160deg, #fff 0%, #fdeee9 130%);
+    border-color: #f4c9bb;
+    padding: 34px 24px
+}
+
+.duration-panel .stat-label {
+    font: 500 10px "DM Mono", monospace;
+    letter-spacing: 1.5px;
+    color: #d97a5f;
+    margin: 0 0 10px
+}
+
+.duration-value {
+    font: 700 clamp(44px, 7vw, 76px)/1 "Space Grotesk", sans-serif;
+    letter-spacing: -1px;
+    color: var(--coral);
+    margin: 0 0 10px;
+    font-variant-numeric: tabular-nums
+}
+
+.duration-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin: 0
+}
+
 .activity-row {
     display: flex;
     justify-content: space-between;

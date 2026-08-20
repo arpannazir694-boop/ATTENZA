@@ -1,3 +1,4 @@
+const API_URL = 'https://script.google.com/macros/s/AKfycbwpuED8aHh5bs_ljk9tFDTITHUmmkCS6HGn3uhE7xvYUqjFDTLMI_H5bMOTiis_8QJY/exec';
 const $ = id => document.getElementById(id);
 
 function showToast(message, success = false) {
@@ -11,6 +12,27 @@ function formatTime(iso) {
     try {
         return new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
     } catch (_) { return '—'; }
+}
+
+// Big live "time in office" counter — ticks every second from the
+// employee's sign-in time up to now, so it visibly keeps running.
+let durationTimer = null;
+function formatDuration(ms) {
+    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    const pad = n => String(n).padStart(2, '0');
+    return `${pad(h)}:${pad(m)}:${pad(s)}`;
+}
+function startDurationTimer(signedInAtIso) {
+    const start = new Date(signedInAtIso).getTime();
+    if (durationTimer) clearInterval(durationTimer);
+    if (!isFinite(start)) return;
+    const el = $('durationValue');
+    const tick = () => { if (el) el.textContent = formatDuration(Date.now() - start); };
+    tick();
+    durationTimer = setInterval(tick, 1000);
 }
 
 $('today').textContent = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }).format(new Date()).toUpperCase();
@@ -43,14 +65,8 @@ if (record && record.employee) {
     $('statTimeNote').textContent = record.signedInAt ? new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short' }).format(new Date(record.signedInAt)) : '\u00a0';
     $('statStatusNote').textContent = typeof record.distance === 'number' ? `${record.distance}m from office` : '\u00a0';
 
-    $('activityList').innerHTML = `
-        <div class="activity-row">
-            <div>
-                <span class="a-main">Sign in${record.viaQr ? ' (QR)' : ''}${record.viaApproval ? ' (Admin approved)' : ''}</span>
-                <span class="a-sub">${record.branch || '—'}${typeof record.distance === 'number' ? ` · ${record.distance}m from office` : ''}${typeof record.accuracy === 'number' ? ` · GPS ±${Math.round(record.accuracy)}m` : ''}</span>
-            </div>
-            <span class="a-time">${formatTime(record.signedInAt)}</span>
-        </div>`;
+    $('durationSub').textContent = `Signed in since ${formatTime(record.signedInAt)} · ${record.branch || '—'}`;
+    startDurationTimer(record.signedInAt);
 } else {
     $('greetingTitle').textContent = 'Welcome.';
     $('greetingSub').textContent = 'We don\u2019t have a sign-in on record for this session yet.';
@@ -59,6 +75,8 @@ if (record && record.employee) {
     $('statusCard').querySelector('.status-icon').style.background = '#edf0f3';
     $('statusTitle').textContent = 'No sign-in yet';
     $('statusText').textContent = 'Go back to the sign-in screen to check in for today.';
+    $('durationValue').textContent = '—';
+    $('durationSub').textContent = 'Sign in to start tracking.';
 }
 
 document.querySelectorAll('.sidebar-link[data-soon]').forEach(btn => {
@@ -69,7 +87,21 @@ document.querySelectorAll('.sidebar-link[data-soon]').forEach(btn => {
 const adminLinkBtn = $('adminLink');
 if (adminLinkBtn) adminLinkBtn.addEventListener('click', () => { window.location.href = 'admin.html'; });
 
-$('signOut').addEventListener('click', () => {
+$('signOut').addEventListener('click', async () => {
+    const btn = $('signOut');
+    // Record the sign-out server-side (closes today's open session) so the
+    // next login starts a brand-new, freshly-timed one instead of quietly
+    // resuming this one. Still sign out locally even if this call fails.
+    if (record && record.employee) {
+        btn.disabled = true;
+        try {
+            await fetch(API_URL, {
+                method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'signOut', employee: record.employee, branch: record.branch })
+            });
+        } catch (_) {/* ignore — still sign out locally below */ }
+    }
+    if (durationTimer) clearInterval(durationTimer);
     try { sessionStorage.removeItem('attenza_signin'); } catch (_) {/* ignore */ }
     window.location.href = 'index.html';
 });

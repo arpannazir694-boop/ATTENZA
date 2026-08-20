@@ -76,6 +76,24 @@
                 </div>
                 <button class="signin-btn" id="signIn" type="button" disabled><span>Sign in to office</span><span
                         class="arrow">→</span></button>
+                <button class="qr-link" id="toggleBranchRequest" type="button">Not at your branch? Request sign-in
+                    from here <span>→</span></button>
+                <div class="branch-request" id="branchRequestBlock" hidden>
+                    <p class="step-label" style="margin-bottom:8px">WHICH BRANCH ARE YOU AT?</p>
+                    <div class="select-wrap">
+                        <select id="branchSelect" aria-label="Select the branch you are at"></select>
+                        <span>▾</span>
+                    </div>
+                    <div class="location-card" id="branchLocationCard">
+                        <div class="location-icon">⌖</div>
+                        <div><strong id="branchLocationTitle">Location not checked</strong>
+                            <p id="branchLocationText">Pick a branch above, then check your location.</p>
+                        </div><button class="check-btn" id="checkBranchLocation" type="button">CHECK</button>
+                    </div>
+                    <button class="signin-btn" id="requestApprovalBtn" type="button" disabled><span>Request approval
+                            from admin</span><span class="arrow">→</span></button>
+                    <p class="password-status" id="branchRequestStatus"></p>
+                </div>
                 <button class="qr-link" id="openQr" type="button">Using a desktop? Scan office QR instead
                     <span>→</span></button>
                 <p class="privacy-note">Your location is used only to verify this check-in.</p>

@@ -21,8 +21,9 @@ try {
     record = raw ? JSON.parse(raw) : null;
 } catch (_) { record = null; }
 
-// Show Admin panel link only for Admin role — strict check
-const isAdmin = record && String(record.role || '').trim() === 'Admin';
+// Show Admin panel link only for Admin role — case/space tolerant check,
+// since the role comes from a free-typed sheet cell ("Admin", "admin", "ADMIN ", etc.)
+const isAdmin = record && String(record.role || '').trim().toLowerCase() === 'admin';
 if (isAdmin) {
     const adminLink = $('adminLink');
     if (adminLink) adminLink.hidden = false;

@@ -34,8 +34,9 @@ if (record && record.employee) {
     $('greetingTitle').innerHTML = `Good to see<br>you, <em style="color:var(--coral);font-style:normal">${firstName}</em>.`;
     $('greetingSub').textContent = `You checked in at ${record.branch || 'your branch'} — everything looks good.`;
 
+    const viaNote = record.viaQr ? ' · via QR' : (record.viaApproval ? ' · admin approved' : '');
     $('statusTitle').textContent = 'Sign-in recorded';
-    $('statusText').textContent = `${record.employee} · ${record.branch || '—'}${record.viaQr ? ' · via QR' : ''}`;
+    $('statusText').textContent = `${record.employee} · ${record.branch || '—'}${viaNote}`;
 
     $('statBranch').textContent = record.branch || '—';
     $('statTime').textContent = formatTime(record.signedInAt);
@@ -45,7 +46,7 @@ if (record && record.employee) {
     $('activityList').innerHTML = `
         <div class="activity-row">
             <div>
-                <span class="a-main">Sign in${record.viaQr ? ' (QR)' : ''}</span>
+                <span class="a-main">Sign in${record.viaQr ? ' (QR)' : ''}${record.viaApproval ? ' (Admin approved)' : ''}</span>
                 <span class="a-sub">${record.branch || '—'}${typeof record.distance === 'number' ? ` · ${record.distance}m from office` : ''}${typeof record.accuracy === 'number' ? ` · GPS ±${Math.round(record.accuracy)}m` : ''}</span>
             </div>
             <span class="a-time">${formatTime(record.signedInAt)}</span>
@@ -61,8 +62,12 @@ if (record && record.employee) {
 }
 
 document.querySelectorAll('.sidebar-link[data-soon]').forEach(btn => {
+    if (btn.id === 'adminLink') return; // Admin link gets real navigation below, not a "coming soon" toast.
     btn.addEventListener('click', () => showToast(`${btn.dataset.soon} is coming soon.`));
 });
+
+const adminLinkBtn = $('adminLink');
+if (adminLinkBtn) adminLinkBtn.addEventListener('click', () => { window.location.href = 'admin.html'; });
 
 $('signOut').addEventListener('click', () => {
     try { sessionStorage.removeItem('attenza_signin'); } catch (_) {/* ignore */ }

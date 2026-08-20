@@ -93,7 +93,17 @@ document.querySelectorAll('.sidebar-link[data-soon]').forEach(btn => {
     btn.addEventListener('click', () => showToast(`${btn.dataset.soon} is coming soon.`));
 });
 
-$('signOut').addEventListener('click', () => {
+$('signOut').addEventListener('click', async () => {
+    const btn = $('signOut');
+    if (record && record.employee) {
+        btn.disabled = true;
+        try {
+            await fetch(API_URL, {
+                method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'signOut', employee: record.employee, branch: record.branch })
+            });
+        } catch (_) {/* ignore — still sign out locally below */ }
+    }
     try { sessionStorage.removeItem('attenza_signin'); } catch (_) {/* ignore */ }
     window.location.href = 'index.html';
 });

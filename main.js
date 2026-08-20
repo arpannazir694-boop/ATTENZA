@@ -1,6 +1,7 @@
 const API_URL = 'https://script.google.com/macros/s/AKfycbwpuED8aHh5bs_ljk9tFDTITHUmmkCS6HGn3uhE7xvYUqjFDTLMI_H5bMOTiis_8QJY/exec', MAX_DISTANCE_METERS = 150;
 const fallbackData = { gps: [{ branch: 'P-35', latitude: 22.5140997, longitude: 88.4082414 }], employees: [{ name: 'Arpan Nazir', branch: 'P-35' }] };
 let data = fallbackData, verified = null, selectedEmployeeIndex = null, passwordVerified = false, verifiedRole = null;
+let autoSignInInfo = null; // set when the server says this employee already signed in today — skips the location step
 let verifiedBranchRequest = null, branchRequestPollTimer = null;
 const $ = id => document.getElementById(id), locationCard = $('locationCard'), signIn = $('signIn');
 const employeeSearch = $('employeeSearch'), employeeCombo = $('employeeCombo'), employeeList = $('employeeList');
@@ -59,13 +60,14 @@ function runDesktopFlow() {
     function closeEmployeeList() { employeeCombo.classList.remove('open'); employeeSearch.setAttribute('aria-expanded', 'false') }
 
     function resetPasswordStep() {
-        passwordVerified = false; verifiedRole = null;
+        passwordVerified = false; verifiedRole = null; autoSignInInfo = null;
         employeePasswordInput.value = ''; employeePasswordInput.disabled = false; employeePasswordInput.type = 'password';
         $('togglePassword').setAttribute('aria-pressed', 'false'); $('togglePassword').setAttribute('aria-label', 'Show password');
         passwordStatus.textContent = ''; passwordStatus.className = 'password-status';
         verifyPasswordBtn.disabled = false; verifyPasswordBtn.textContent = 'VERIFY';
         verified = null; signIn.disabled = true;
-        checkLocationBtn.disabled = true;
+        checkLocationBtn.disabled = true; checkLocationBtn.hidden = false;
+        signIn.querySelector('span').textContent = 'Sign in to office';
         setLocation('Location not checked', 'We need your location to sign you in.');
         resetBranchRequest();
     }
@@ -119,7 +121,20 @@ function runDesktopFlow() {
                 passwordStatus.textContent = 'Password verified ✓'; passwordStatus.className = 'password-status success';
                 employeePasswordInput.disabled = true;
                 verifyPasswordBtn.textContent = 'VERIFIED';
-                checkLocationBtn.disabled = false;
+
+                if (result.alreadySignedInToday && result.previousSignIn) {
+                    // Already checked in once today — no need to check location again,
+                    // just let them confirm and sign in using that earlier check-in.
+                    autoSignInInfo = result.previousSignIn;
+                    checkLocationBtn.disabled = true; checkLocationBtn.hidden = true;
+                    setLocation('Already signed in today', `You checked in earlier today at ${autoSignInInfo.branch}${typeof autoSignInInfo.distance === 'number' ? ` · ${autoSignInInfo.distance}m from office` : ''}. Tap below to sign in again — no need to check location.`, 'ready');
+                    signIn.disabled = false;
+                } else {
+                    autoSignInInfo = null;
+                    checkLocationBtn.disabled = false; checkLocationBtn.hidden = false;
+                    setLocation('Location not checked', 'We need your location to sign you in.');
+                    signIn.disabled = true;
+                }
             } else {
                 passwordVerified = false; verifyPasswordBtn.disabled = false;
                 passwordStatus.textContent = (result && result.message) || 'Incorrect password.';
@@ -154,8 +169,32 @@ function runDesktopFlow() {
     });
 
     signIn.addEventListener('click', async () => {
-        if (!verified) return;
         const e = selectedEmployee();
+        if (!e) return;
+
+        // Already signed in once today — skip location entirely and reuse
+        // the earlier check-in's location/distance instead of recalculating it.
+        if (autoSignInInfo) {
+            signIn.disabled = true; signIn.querySelector('span').textContent = 'Signing you in…';
+            const payload = { action: 'autoSignIn', employee: field(e, ['name', 'Employee Name']), branch: autoSignInInfo.branch, signedInAt: new Date().toISOString(), role: verifiedRole };
+            try {
+                const r = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+                const result = await r.json();
+                if (result && result.ok) {
+                    showToast(`Welcome back, ${payload.employee}. Signed in.`, true);
+                    saveSignInAndRedirect({ ...payload, distance: autoSignInInfo.distance, accuracy: autoSignInInfo.accuracy });
+                } else {
+                    showToast((result && result.message) || 'Could not sign in.');
+                    signIn.disabled = false; signIn.querySelector('span').textContent = 'Sign in to office';
+                }
+            } catch (_) {
+                showToast('Could not reach the server. Try again.');
+                signIn.disabled = false; signIn.querySelector('span').textContent = 'Sign in to office';
+            }
+            return;
+        }
+
+        if (!verified) return;
         signIn.disabled = true; signIn.querySelector('span').textContent = 'Signing you in…';
         const payload = { action: 'signIn', employee: field(e, ['name', 'Employee Name']), branch: field(e, ['branch', 'Branch']), ...verified, signedInAt: new Date().toISOString(), role: verifiedRole };
         try {

@@ -1,0 +1,976 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101f38" />
+    <title>ATTENZA — Leave</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&family=DM+Mono:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=Space+Grotesk:wght@500;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+    <style>
+        /* Lock the page itself from scrolling — only the fixed cards
+           below (the applications list, and the form as a safety net)
+           scroll internally. */
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* ── Leave Balance KPI strip ── */
+        .leave-kpi-strip {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            flex: 0 0 auto;
+        }
+
+        @media (max-width: 1100px) {
+            .leave-kpi-strip {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 700px) {
+            .leave-kpi-strip {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .leave-kpi {
+            border: none;
+            padding: 12px 10px 10px;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+            cursor: pointer;
+            transition: filter .15s, transform .12s;
+            border-radius: 2px;
+        }
+
+        .leave-kpi:hover {
+            filter: brightness(0.93);
+            transform: translateY(-1px);
+        }
+
+        .leave-kpi:active {
+            transform: translateY(0);
+            filter: brightness(0.87);
+        }
+
+        .leave-kpi.kpi-balance {
+            background: #fff0eb;
+            border: 1.5px solid #f0b49a;
+        }
+
+        .leave-kpi.kpi-medical {
+            background: #eceef9;
+            border: 1.5px solid #b0b8e4;
+        }
+
+        .leave-kpi.kpi-personal {
+            background: #e8f5ee;
+            border: 1.5px solid #96ccb0;
+        }
+
+        .leave-kpi.kpi-halfday {
+            background: #fdf4e3;
+            border: 1.5px solid #e8c97a;
+        }
+
+        .leave-kpi.kpi-early {
+            background: #f0eef8;
+            border: 1.5px solid #b8b0de;
+        }
+
+        /* ── Live pulse on Earned Leave value ── */
+        @keyframes kpiPulse {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(0.93);
+            }
+
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .kpi-balance-pulse {
+            display: inline-block;
+            animation: kpiPulse 2.2s ease-in-out infinite;
+        }
+
+        .kpi-live-dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #c96845;
+            vertical-align: middle;
+            margin-left: 5px;
+            margin-bottom: 4px;
+            animation: kpiPulse 2.2s ease-in-out infinite;
+        }
+
+        .leave-kpi-label {
+            font: 600 8.5px "DM Mono", monospace;
+            letter-spacing: 1px;
+            margin: 0 0 5px;
+        }
+
+        .leave-kpi.kpi-balance .leave-kpi-label {
+            color: #c96845;
+        }
+
+        .leave-kpi.kpi-medical .leave-kpi-label {
+            color: #4a57a8;
+        }
+
+        .leave-kpi.kpi-personal .leave-kpi-label {
+            color: #2e7a56;
+        }
+
+        .leave-kpi.kpi-halfday .leave-kpi-label {
+            color: #a07030;
+        }
+
+        .leave-kpi.kpi-early .leave-kpi-label {
+            color: #6a5fa0;
+        }
+
+        .leave-kpi-value {
+            font: 700 24px "Space Grotesk", sans-serif;
+            letter-spacing: -0.5px;
+            margin: 0 0 3px;
+            line-height: 1;
+        }
+
+        .leave-kpi.kpi-balance .leave-kpi-value {
+            color: #c96845;
+        }
+
+        .leave-kpi.kpi-medical .leave-kpi-value {
+            color: #4a57a8;
+        }
+
+        .leave-kpi.kpi-personal .leave-kpi-value {
+            color: #2e7a56;
+        }
+
+        .leave-kpi.kpi-halfday .leave-kpi-value {
+            color: #a07030;
+        }
+
+        .leave-kpi.kpi-early .leave-kpi-value {
+            color: #6a5fa0;
+        }
+
+        .leave-kpi-sub {
+            font-size: 9px;
+            margin: 0;
+        }
+
+        .leave-kpi.kpi-balance .leave-kpi-sub {
+            color: #c9826a;
+        }
+
+        .leave-kpi.kpi-medical .leave-kpi-sub {
+            color: #6a77ba;
+        }
+
+        .leave-kpi.kpi-personal .leave-kpi-sub {
+            color: #3e8f66;
+        }
+
+        .leave-kpi.kpi-halfday .leave-kpi-sub {
+            color: #b08848;
+        }
+
+        .leave-kpi.kpi-early .leave-kpi-sub {
+            color: #7a6fb8;
+        }
+
+        /* ── KPI Detail Modal ── */
+        .kpi-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 20, 40, .45);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .kpi-modal-overlay.open {
+            display: flex;
+        }
+
+        .kpi-modal {
+            background: #fff;
+            width: 100%;
+            max-width: 700px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 8px 40px rgba(10, 20, 40, .18);
+            border-radius: 3px;
+            overflow: hidden;
+            animation: kpiModalIn .18s ease;
+        }
+
+        @keyframes kpiModalIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .kpi-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px 14px;
+            border-bottom: 1px solid var(--line);
+            flex: 0 0 auto;
+        }
+
+        .kpi-modal-header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .kpi-modal-dot {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            flex: 0 0 auto;
+        }
+
+        .kpi-modal-title {
+            font: 700 15px "Space Grotesk", sans-serif;
+            color: var(--ink);
+            margin: 0;
+        }
+
+        .kpi-modal-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            color: var(--muted);
+            padding: 2px 6px;
+            line-height: 1;
+            transition: color .15s;
+        }
+
+        .kpi-modal-close:hover {
+            color: var(--ink);
+        }
+
+        .kpi-modal-summary {
+            padding: 12px 20px;
+            background: #f8f9fb;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            gap: 28px;
+            flex-wrap: wrap;
+            flex: 0 0 auto;
+        }
+
+        .kpi-modal-stat {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .kpi-modal-stat-val {
+            font: 700 20px "Space Grotesk", sans-serif;
+            line-height: 1;
+        }
+
+        .kpi-modal-stat-lbl {
+            font: 500 9px "DM Mono", monospace;
+            letter-spacing: .8px;
+            color: var(--muted);
+        }
+
+        .kpi-modal-body {
+            flex: 1 1 auto;
+            overflow-y: auto;
+            padding: 16px 20px;
+        }
+
+        .kpi-modal-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .kpi-modal-table thead th {
+            font: 600 9px "DM Mono", monospace;
+            letter-spacing: .8px;
+            color: var(--muted);
+            text-align: left;
+            padding: 0 12px 8px 0;
+            border-bottom: 1px solid var(--line);
+            white-space: nowrap;
+        }
+
+        .kpi-modal-table tbody td {
+            padding: 9px 12px 9px 0;
+            border-bottom: 1px solid #f0f0f0;
+            color: var(--ink);
+            vertical-align: top;
+        }
+
+        .kpi-modal-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .kpi-modal-table tbody tr:hover td {
+            background: #fafafa;
+        }
+
+        .kpi-modal-empty {
+            text-align: center;
+            padding: 32px 0;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .kpi-td-badge {
+            display: inline-block;
+            font: 600 9px "DM Mono", monospace;
+            letter-spacing: .6px;
+            padding: 3px 8px;
+            border-radius: 2px;
+        }
+
+        /* ── Date filter bar ── */
+        .leave-filter-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 0 0 auto;
+            flex-wrap: wrap;
+        }
+
+        .filter-label {
+            font: 500 9px "DM Mono", monospace;
+            letter-spacing: 1px;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        .filter-btn {
+            font: 600 10px "DM Mono", monospace;
+            letter-spacing: .8px;
+            padding: 6px 12px;
+            border: 1px solid var(--line);
+            background: #fff;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--navy);
+            color: var(--navy);
+        }
+
+        .filter-btn.active {
+            background: var(--navy);
+            border-color: var(--navy);
+            color: #fff;
+        }
+
+        .filter-date-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .filter-date-input {
+            font: 500 11px "DM Mono", monospace;
+            border: 1px solid var(--line);
+            background: #fff;
+            padding: 5px 8px;
+            color: var(--ink);
+            outline: none;
+        }
+
+        .filter-date-input:focus {
+            border-color: var(--navy);
+        }
+
+        .filter-sep {
+            font-size: 10px;
+            color: var(--muted);
+        }
+
+        .home-shell {
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .home-main {
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .home-topbar {
+            flex: 0 0 auto;
+        }
+
+        /* ── Top row: greeting LEFT + KPI+filter RIGHT ── */
+        .home-top-row {
+            flex: 0 0 auto;
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 20px;
+            align-items: start;
+            margin-bottom: 14px;
+        }
+
+        @media (max-width: 1000px) {
+            .home-top-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .leave-top-right {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* ── Leave-specific styles ── */
+        .leave-layout {
+            display: grid;
+            grid-template-columns: minmax(300px, 380px) 1fr;
+            gap: 20px;
+            align-items: stretch;
+            flex: 1 1 auto;
+            min-height: 0;
+        }
+
+        @media (max-width: 900px) {
+            .leave-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .leave-form-panel,
+        .leave-history-panel {
+            min-height: 0;
+        }
+
+        .leave-form-panel .home-panel {
+            margin-bottom: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            border-top: 3px solid #10203a;
+            background: #fafbfd;
+        }
+
+        .leave-form-panel .home-panel::-webkit-scrollbar,
+        .leave-history-panel .home-panel::-webkit-scrollbar,
+        .leave-list-scroll::-webkit-scrollbar {
+            display: none;
+            width: 0;
+            height: 0;
+        }
+
+        .leave-history-panel .home-panel {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .leave-history-panel .home-panel h3 {
+            flex: 0 0 auto;
+        }
+
+        .leave-list-scroll {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        /* ── Form card heading ── */
+        .leave-form-panel .home-panel h3 {
+            font: 700 14px "Space Grotesk", sans-serif;
+            color: #10203a;
+            letter-spacing: -.1px;
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e8ecf2;
+            text-transform: uppercase;
+        }
+
+        /* ── Field wrappers ── */
+        .leave-field {
+            margin-bottom: 14px;
+        }
+
+        .leave-field label {
+            display: block;
+            font: 700 9px "DM Mono", monospace;
+            letter-spacing: 1px;
+            color: #8394a8;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .leave-field input[type="date"],
+        .leave-field input[type="time"],
+        .leave-field select,
+        .leave-field textarea {
+            width: 100%;
+            border: 1.5px solid #dde3ed;
+            background: #ffffff;
+            padding: 9px 12px;
+            font: 500 13px Manrope, sans-serif;
+            color: #10203a;
+            box-sizing: border-box;
+            border-radius: 4px;
+            transition: border-color .15s, box-shadow .15s;
+        }
+
+        .leave-field input[type="date"],
+        .leave-field input[type="time"] {
+            font: 600 12px "DM Mono", monospace;
+            color: #10203a;
+        }
+
+        .leave-field select {
+            font-weight: 600;
+            cursor: pointer;
+            color: #10203a;
+        }
+
+        .leave-field textarea {
+            resize: vertical;
+            min-height: 76px;
+            font-family: Manrope, sans-serif;
+            line-height: 1.5;
+        }
+
+        .leave-field input[type="date"]:focus,
+        .leave-field input[type="time"]:focus,
+        .leave-field select:focus,
+        .leave-field textarea:focus {
+            outline: none;
+            border-color: #10203a;
+            box-shadow: 0 0 0 3px rgba(16, 32, 58, 0.08);
+            background: #fff;
+        }
+
+        /* ── Date row ── */
+        .leave-range-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        /* ── Days count note ── */
+        .leave-days-note {
+            font: 700 10px "DM Mono", monospace;
+            color: #c96845;
+            margin: -8px 0 14px;
+            display: block;
+        }
+
+        /* ── Submit button ── */
+        .leave-form-panel .signin-btn {
+            border-radius: 4px;
+            height: 48px;
+            font-size: 12.5px;
+            letter-spacing: .4px;
+            margin-top: 4px;
+        }
+
+        /* ── Status message ── */
+        .leave-submit-status {
+            font: 600 11px "DM Mono", monospace;
+            margin-top: 8px;
+            min-height: 16px;
+            text-align: center;
+        }
+
+        .leave-submit-status.error {
+            color: #c1554a;
+        }
+
+        .leave-submit-status.success {
+            color: #2e7d53;
+        }
+
+        /* ── "Your applications" panel ── */
+        .leave-history-panel .home-panel {
+            border-top: 3px solid #10203a;
+            background: #fafbfd;
+        }
+
+        .leave-history-panel .home-panel h3 {
+            font: 700 14px "Space Grotesk", sans-serif;
+            color: #10203a;
+            letter-spacing: -.1px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e8ecf2;
+            text-transform: uppercase;
+        }
+
+        /* ── Leave row cards ── */
+        .leave-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 13px 14px;
+            margin-bottom: 8px;
+            border: 1.5px solid #e4eaf3;
+            border-left: 4px solid #b8c4d8;
+            background: #fff;
+            border-radius: 4px;
+            transition: box-shadow .15s;
+        }
+
+        .leave-row:hover {
+            box-shadow: 0 2px 10px rgba(16, 32, 58, .07);
+        }
+
+        .leave-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .leave-row.row-pending {
+            background: #fffdf6;
+            border-color: #eddfa3;
+            border-left-color: #d4a82b;
+        }
+
+        .leave-row.row-approved {
+            background: #f5fbf7;
+            border-color: #bddece;
+            border-left-color: #3a9e6a;
+        }
+
+        .leave-row.row-rejected {
+            background: #fdf4f3;
+            border-color: #f0c9c4;
+            border-left-color: #d85a50;
+        }
+
+        /* ── Row text ── */
+        .leave-row-main {
+            font: 700 13px "Space Grotesk", sans-serif;
+            color: #10203a;
+            letter-spacing: -.1px;
+        }
+
+        .leave-row-sub {
+            display: block;
+            font: 500 10.5px "DM Mono", monospace;
+            color: #8394a8;
+            margin-top: 4px;
+            letter-spacing: .2px;
+        }
+
+        .leave-row-reason {
+            display: block;
+            font: 500 11.5px Manrope, sans-serif;
+            color: #4a5568;
+            margin-top: 6px;
+            font-style: italic;
+            max-width: 480px;
+        }
+
+        /* ── Status chips ── */
+        .leave-status-chip {
+            flex: 0 0 auto;
+            font: 700 8.5px "DM Mono", monospace;
+            letter-spacing: .8px;
+            padding: 4px 9px;
+            border-radius: 3px;
+            white-space: nowrap;
+            text-transform: uppercase;
+        }
+
+        .chip-pending {
+            background: #fef3c7;
+            border: 1.5px solid #d4a82b;
+            color: #92650a;
+        }
+
+        .chip-approved {
+            background: #dcfce7;
+            border: 1.5px solid #3a9e6a;
+            color: #166534;
+        }
+
+        .chip-rejected {
+            background: #fee2e2;
+            border: 1.5px solid #d85a50;
+            color: #991b1b;
+        }
+
+        .leave-list-scroll {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .leave-list-scroll::-webkit-scrollbar {
+            display: none;
+            width: 0;
+        }
+
+        .leave-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: #8394a8;
+            font: 500 13px Manrope, sans-serif;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="home-shell">
+        <aside class="sidebar" aria-label="Main navigation">
+            <a class="sidebar-logo" href="home.html" title="ATTENZA Home">
+                <span class="emblem-letter">A</span>
+            </a>
+            <nav class="sidebar-nav">
+                <a class="sidebar-link" href="home.html">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M3 11.5 12 4l9 7.5" />
+                        <path d="M5.5 10v9.5h13V10" />
+                        <path d="M9.5 19.5V13.5h5v6" />
+                    </svg>
+                    <span>HOME</span>
+                </a>
+                <a class="sidebar-link" href="history.html">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="9" />
+                        <path d="M12 7v5l3.3 2" />
+                    </svg>
+                    <span>HISTORY</span>
+                </a>
+                <a class="sidebar-link active" href="leave.html" aria-current="page">
+                    <svg viewBox="0 0 24 24">
+                        <rect x="3.5" y="5" width="17" height="15" rx="1.5" />
+                        <path d="M3.5 9.5h17" />
+                        <path d="M8 3v4M16 3v4" />
+                        <path d="M8.5 13.5l2 2 4-4" />
+                    </svg>
+                    <span>LEAVE</span>
+                </a>
+                <a class="sidebar-link" id="smartReportsLink" href="reports.html" title="Smart Reports & Analytics">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M21 21H3V3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M7 14l4-4 4 4 5-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <span>SMART REPORTS</span>
+                </a>
+                <button class="sidebar-link admin-link" id="adminLink" type="button" hidden>
+                    <svg viewBox="0 0 24 24">
+                        <path
+                            d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                    </svg>
+                    <span>ADMIN</span>
+                </button>
+            </nav>
+            <div class="sidebar-foot">
+                <button class="sidebar-link" id="signOut" type="button" title="Sign out">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M9 4H5.5a1.5 1.5 0 0 0-1.5 1.5v13A1.5 1.5 0 0 0 5.5 20H9" />
+                        <path d="M16 16.5 21 12l-5-4.5" />
+                        <path d="M21 12H9" />
+                    </svg>
+                    <span>SIGN OUT</span>
+                </button>
+            </div>
+        </aside>
+
+        <main class="home-main">
+            <div class="home-topbar">
+                <span class="date-chip" id="today"></span>
+                <span class="secure"><b>●</b> SECURE SESSION</span>
+            </div>
+
+            <div class="home-top-row">
+                <div class="home-greeting">
+                    <p class="step-label">LEAVE</p>
+                    <h1 id="leaveTitle">Apply for leave.</h1>
+                    <p id="leaveSub">Loading your leave history…</p>
+                </div>
+
+                <div class="leave-top-right">
+                    <!-- ── Leave Balance KPI strip ── -->
+                    <div class="leave-kpi-strip" id="leaveKpiStrip">
+                        <div class="leave-kpi kpi-balance">
+                            <p class="leave-kpi-label">EARNED LEAVE LEFT</p>
+                            <p class="leave-kpi-value" id="kpiBalance"><span class="kpi-balance-pulse">—</span><span
+                                    class="kpi-live-dot"></span></p>
+                            <p class="leave-kpi-sub" id="kpiBalanceSub">Loading…</p>
+                        </div>
+                        <div class="leave-kpi kpi-medical">
+                            <p class="leave-kpi-label">MEDICAL PURPOSE</p>
+                            <p class="leave-kpi-value" id="kpiMedical">—</p>
+                            <p class="leave-kpi-sub" id="kpiMedicalSub">days approved</p>
+                        </div>
+                        <div class="leave-kpi kpi-personal">
+                            <p class="leave-kpi-label">PERSONAL LEAVE</p>
+                            <p class="leave-kpi-value" id="kpiPersonal">—</p>
+                            <p class="leave-kpi-sub" id="kpiPersonalSub">days approved</p>
+                        </div>
+                        <div class="leave-kpi kpi-halfday">
+                            <p class="leave-kpi-label">HALF DAYS</p>
+                            <p class="leave-kpi-value" id="kpiHalfDay">—</p>
+                            <p class="leave-kpi-sub" id="kpiHalfDaySub">0.5 day each</p>
+                        </div>
+                        <div class="leave-kpi kpi-early">
+                            <p class="leave-kpi-label">EARLY LEAVES</p>
+                            <p class="leave-kpi-value" id="kpiEarly">—</p>
+                            <p class="leave-kpi-sub" id="kpiEarlySub">≤2 free · 0.5/day after</p>
+                        </div>
+                    </div>
+
+                    <!-- ── Date filter bar ── -->
+                    <div class="leave-filter-bar" id="leaveFilterBar">
+                        <span class="filter-label">FILTER ·</span>
+                        <button class="filter-btn active" data-range="all" type="button">ALL TIME</button>
+                        <button class="filter-btn" data-range="thismonth" type="button">THIS MONTH</button>
+                        <button class="filter-btn" data-range="thisweek" type="button">THIS WEEK</button>
+                        <span class="filter-sep">·</span>
+                        <div class="filter-date-row">
+                            <input type="date" class="filter-date-input" id="filterFrom" title="From date" />
+                            <span class="filter-sep">TO</span>
+                            <input type="date" class="filter-date-input" id="filterTo" title="To date" />
+                            <button class="filter-btn" id="applyCustomRange" type="button">GO</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="leave-layout">
+                <div class="leave-form-panel">
+                    <section class="home-panel">
+                        <h3>New application</h3>
+                        <div class="leave-field leave-range-row">
+                            <div>
+                                <label for="leaveFrom">FROM</label>
+                                <input type="date" id="leaveFrom" />
+                            </div>
+                            <div>
+                                <label for="leaveTo">TO</label>
+                                <input type="date" id="leaveTo" />
+                            </div>
+                        </div>
+                        <p class="leave-days-note" id="leaveDaysNote">&nbsp;</p>
+                        <div class="leave-field">
+                            <label for="leaveType">TYPE</label>
+                            <select id="leaveType">
+                                <option value="Medical Purpose">Medical Purpose</option>
+                                <option value="Personal Leave">Personal Leave</option>
+                                <option value="Half Day">Half Day</option>
+                                <option value="Early Leave">Early Leave</option>
+                            </select>
+                        </div>
+                        <div class="leave-field" id="leaveTimeField" hidden>
+                            <label for="leaveTime" id="leaveTimeLabel">LEAVING AT</label>
+                            <input type="time" id="leaveTime" />
+                        </div>
+                        <div class="leave-field">
+                            <label for="leaveReason">REASON</label>
+                            <textarea id="leaveReason"
+                                placeholder="Briefly tell your admin why you need this leave."></textarea>
+                        </div>
+                        <button class="signin-btn" id="submitLeave" type="button">
+                            <span>Send for approval</span><span class="arrow">→</span>
+                        </button>
+                        <p class="leave-submit-status" id="leaveSubmitStatus"></p>
+                    </section>
+                </div>
+
+                <div class="leave-history-panel">
+                    <section class="home-panel">
+                        <h3>Your applications</h3>
+                        <div class="leave-list-scroll" id="leaveList">
+                            <p class="leave-empty">Loading…</p>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <!-- ── KPI Detail Modal ── -->
+    <div class="kpi-modal-overlay" id="kpiModalOverlay" role="dialog" aria-modal="true">
+        <div class="kpi-modal" id="kpiModal">
+            <div class="kpi-modal-header">
+                <div class="kpi-modal-header-left">
+                    <div class="kpi-modal-dot" id="kpiModalDot"></div>
+                    <h2 class="kpi-modal-title" id="kpiModalTitle">Leave Details</h2>
+                </div>
+                <button class="kpi-modal-close" id="kpiModalClose" type="button" aria-label="Close">&#x2715;</button>
+            </div>
+            <div class="kpi-modal-summary" id="kpiModalSummary"></div>
+            <div class="kpi-modal-body" id="kpiModalBody"></div>
+        </div>
+    </div>
+
+    <div class="signout-overlay" id="signoutOverlay" aria-hidden="true">
+        <div class="signout-modal">
+            <div class="spinner-wrapper">
+                <div class="spinner-wheel"></div>
+                <div class="spinner-icon">
+                    <span class="emblem-letter">A</span>
+                </div>
+            </div>
+            <p class="signout-label">Signing Out</p>
+            <p class="signout-text">Closing session & saving attendance safely…</p>
+        </div>
+    </div>
+
+    <script src="soundfx.js"></script>
+    <script src="reports-auth.js"></script>
+    <script src="leave.js"></script>
+</body>
+
+</html>

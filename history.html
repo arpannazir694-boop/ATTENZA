@@ -1,0 +1,787 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101f38" />
+    <title>ATTENZA — History</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=Space+Grotesk:wght@500;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+    <style>
+        /* ── History-specific styles ── */
+        .hist-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        /* Compact KPI panel — sits beside the greeting, filling the space
+           that used to be blank on the right of "Your record, Jyoti." */
+        .hist-kpi-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .hist-kpi-panel .stat-card {
+            padding: 12px 10px;
+            text-align: center;
+        }
+
+        .hist-kpi-panel .stat-card .stat-label {
+            font-size: 9.5px;
+            letter-spacing: .7px;
+            margin: 0 0 4px;
+        }
+
+        .hist-kpi-panel .stat-card .stat-value {
+            font-size: 26px;
+            margin: 0 0 2px;
+        }
+
+        .hist-kpi-panel .stat-card .stat-note {
+            font-size: 11px;
+        }
+
+        @media (max-width: 860px) {
+            .hist-kpi-panel {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .hist-kpi-panel {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* Widen the right column of the top row so the KPI + controls
+           area has more room to breathe on the history page. */
+        .home-top-row {
+            grid-template-columns: minmax(0, 1fr) minmax(460px, 700px);
+        }
+
+        /* Right column of the top row: compact controls (left) + KPI grid (right) */
+        .hist-top-right {
+            display: grid;
+            grid-template-columns: minmax(280px, 360px) 1fr;
+            gap: 10px;
+            align-items: stretch;
+        }
+
+        @media (max-width: 860px) {
+            .hist-top-right {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Compact "Attendance Log" controls — title, WEEK/MONTH tabs, nav row —
+           shrunk down to fill the space below the KPI grid, beside the greeting. */
+        .hist-controls-compact {
+            border: 1px solid #c4cdec;
+            background: linear-gradient(135deg, #eef1fb 0%, #fdeee9 100%);
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            gap: 8px;
+            height: 100%;
+        }
+
+        .hist-controls-head {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .hist-controls-title {
+            font: 700 17px Manrope, sans-serif;
+            color: var(--ink);
+        }
+
+        .hist-controls-compact .period-tabs {
+            display: flex;
+            gap: 5px;
+        }
+
+        .hist-controls-compact .period-tab {
+            padding: 6px 16px;
+            font-size: 12px;
+        }
+
+        .hist-controls-compact .week-nav {
+            margin-bottom: 0;
+            gap: 8px;
+        }
+
+        .hist-controls-compact .week-nav-btn {
+            width: 28px;
+            height: 28px;
+            font-size: 16px;
+        }
+
+        .hist-controls-compact .week-label {
+            font-size: 14px;
+        }
+
+        .day-picker {
+            flex: 1;
+            border: 1px solid var(--line);
+            background: #fff;
+            padding: 5px 8px;
+            font: 600 12px "DM Mono", monospace;
+            color: var(--ink);
+            letter-spacing: .3px;
+            cursor: pointer;
+            min-width: 0;
+        }
+
+        .day-picker:focus {
+            outline: none;
+            border-color: var(--navy);
+        }
+
+        /* Bug fix: the [hidden] attribute must win over .week-nav's own
+           display:flex — otherwise monthNav still renders in week view. */
+        .week-nav[hidden] {
+            display: none;
+        }
+
+        /* Day picker strip is hidden per request — .cal-strip uses
+           display:grid, so [hidden] needs the same override. */
+        .cal-strip[hidden] {
+            display: none;
+        }
+
+        /* Period switcher */
+        .period-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .period-bar h3 {
+            font: 700 15px Manrope, sans-serif;
+            margin: 0;
+        }
+
+        .period-tabs {
+            display: flex;
+            gap: 4px;
+        }
+
+        .period-tab {
+            padding: 6px 14px;
+            border: 1px solid var(--line);
+            background: #fff;
+            font: 600 10px "DM Mono", monospace;
+            letter-spacing: .8px;
+            color: var(--muted);
+            cursor: pointer;
+            transition: background .15s, color .15s, border-color .15s;
+        }
+
+        .period-tab.active {
+            background: var(--navy);
+            border-color: var(--navy);
+            color: #fff;
+        }
+
+        .period-tab:hover:not(.active) {
+            border-color: var(--ink);
+            color: var(--ink);
+        }
+
+        /* Week navigator */
+        .week-nav {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .week-nav-btn {
+            width: 34px;
+            height: 34px;
+            border: 1px solid var(--line);
+            background: #fff;
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            color: var(--ink);
+            font-size: 16px;
+            transition: background .15s;
+            flex: 0 0 auto;
+        }
+
+        .week-nav-btn:hover {
+            background: var(--mint);
+        }
+
+        .week-nav-btn:disabled {
+            color: var(--line);
+            cursor: not-allowed;
+        }
+
+        .week-nav-btn:disabled:hover {
+            background: #fff;
+        }
+
+        .week-label {
+            font: 500 11px "DM Mono", monospace;
+            letter-spacing: .8px;
+            color: var(--muted);
+            flex: 1;
+        }
+
+        /* Day detail panel */
+        .day-detail {
+            border: 1px solid var(--line);
+            background: #fff;
+            padding: 22px 24px;
+            margin-bottom: 24px;
+        }
+
+        .day-detail-header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .day-detail-title {
+            font: 800 20px "Playfair Display", serif;
+            letter-spacing: -.5px;
+            margin: 0;
+        }
+
+        .day-detail-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .excel-export-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border: 1px solid var(--line);
+            background: #fff;
+            font: 600 9.5px "DM Mono", monospace;
+            letter-spacing: .7px;
+            color: var(--ink);
+            cursor: pointer;
+            transition: border-color .15s, background .15s;
+        }
+
+        .excel-export-btn:hover {
+            border-color: #1D6F42;
+            background: #eef7f1;
+        }
+
+        .excel-export-btn:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+
+        .day-detail-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            font: 600 9px "DM Mono", monospace;
+            letter-spacing: .8px;
+        }
+
+        .badge-present {
+            background: #e6f5ec;
+            color: #2e7d53;
+            border: 1px solid #b9d9c6;
+        }
+
+        .badge-absent {
+            background: #fafafa;
+            color: var(--muted);
+            border: 1px solid var(--line);
+        }
+
+        .badge-partial {
+            background: #fdeee9;
+            color: #c1554a;
+            border: 1px solid #f4c9bb;
+        }
+
+        .badge-today {
+            background: #eef1fb;
+            color: #5866b0;
+            border: 1px solid #c4cdec;
+        }
+
+        /* Session timeline */
+        .session-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .session-item {
+            display: grid;
+            grid-template-columns: 120px 1fr auto;
+            align-items: center;
+            gap: 14px;
+            padding: 13px 0;
+            border-bottom: 1px solid var(--line);
+            font-size: 13px;
+        }
+
+        .session-item:last-child {
+            border-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .session-time-col {
+            font: 500 12px "DM Mono", monospace;
+            color: var(--muted);
+        }
+
+        .session-time-range {
+            display: block;
+            color: var(--ink);
+            font-weight: 500;
+        }
+
+        .session-time-dur {
+            font: 500 10px "DM Mono", monospace;
+            color: var(--coral);
+            margin-top: 2px;
+        }
+
+        /* Date sub-header inside the combined week/month session table —
+           sticky so it stays visible while that day's rows scroll past. */
+        .session-date-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 2px 6px;
+            font: 700 10px "DM Mono", monospace;
+            letter-spacing: .7px;
+            color: var(--ink);
+            background: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .session-date-header:not(:first-child) {
+            border-top: 1px solid var(--line);
+            margin-top: 4px;
+        }
+
+        .session-date-total {
+            font: 600 10px "DM Mono", monospace;
+            color: var(--coral);
+        }
+
+        .session-info-main {
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .session-info-sub {
+            display: block;
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .session-type-chip {
+            font: 600 8px "DM Mono", monospace;
+            letter-spacing: .7px;
+            padding: 3px 8px;
+            border: 1px solid var(--line);
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        .chip-qr {
+            background: #eef1fb;
+            border-color: #c4cdec;
+            color: #5866b0;
+        }
+
+        .chip-admin {
+            background: #fdeee9;
+            border-color: #f4c9bb;
+            color: #c1554a;
+        }
+
+        .chip-normal {
+            background: #e6f5ec;
+            border-color: #b9d9c6;
+            color: #2e7d53;
+        }
+
+        .chip-out {
+            background: #fafafa;
+            border-color: var(--line);
+            color: var(--muted);
+        }
+
+        /* Empty state */
+        .hist-empty {
+            text-align: center;
+            padding: 40px 24px;
+            color: var(--muted);
+        }
+
+        .hist-empty-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+            opacity: .5;
+        }
+
+        .hist-empty p {
+            font-size: 13px;
+            margin: 4px 0;
+        }
+
+        /* Loading skeleton */
+        .skel {
+            background: linear-gradient(90deg, #f0f0ef 25%, #e5e4e0 50%, #f0f0ef 75%);
+            background-size: 200% 100%;
+            animation: skelShimmer 1.4s infinite;
+            border-radius: 2px;
+        }
+
+        @keyframes skelShimmer {
+            0% {
+                background-position: 200% 0
+            }
+
+            100% {
+                background-position: -200% 0
+            }
+        }
+
+        /* Totals in day detail */
+        .day-totals {
+            display: flex;
+            gap: 24px;
+            padding: 14px 0 18px;
+            border-bottom: 1px solid var(--line);
+            margin-bottom: 4px;
+            flex-wrap: wrap;
+        }
+
+        .day-total-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .day-total-label {
+            font: 500 9px "DM Mono", monospace;
+            letter-spacing: .9px;
+            color: var(--muted);
+        }
+
+        .day-total-val {
+            font: 700 22px "Space Grotesk", sans-serif;
+            letter-spacing: -.3px;
+            color: var(--ink);
+        }
+
+        .day-total-val.coral {
+            color: var(--coral);
+        }
+
+        /* No-session note */
+        .no-session-note {
+            padding: 24px 0 8px;
+            font-size: 13px;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            .session-item {
+                grid-template-columns: 1fr auto;
+                grid-template-rows: auto auto;
+            }
+
+            .session-time-col {
+                grid-column: 1 / -1;
+            }
+        }
+
+        /* ── Fixed viewport: whole page never scrolls; only the session
+           list inside the day-detail card scrolls, with its scrollbar
+           hidden so it reads as a clean, fixed card. ── */
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .home-shell {
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .home-main {
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .home-topbar,
+        .home-top-row {
+            flex: 0 0 auto;
+        }
+
+        .home-main>section.home-panel {
+            flex: 1 1 auto;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #logView {
+            flex: 1 1 auto;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Day-detail card: fixed shape, header/totals stay put, only the
+           session rows scroll inside it. */
+        .day-detail {
+            flex: 1 1 auto;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .day-detail-header,
+        .day-totals {
+            flex: 0 0 auto;
+        }
+
+        #dayDetailBody {
+            flex: 1 1 auto;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .session-list {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            /* hide the scrollbar visually while keeping it scrollable */
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .session-list::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="home-shell">
+        <aside class="sidebar" aria-label="Main navigation">
+            <a class="sidebar-logo" href="home.html" title="ATTENZA Home">
+                <span class="emblem-letter">A</span>
+            </a>
+            <nav class="sidebar-nav">
+                <a class="sidebar-link" href="home.html">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M3 11.5 12 4l9 7.5" />
+                        <path d="M5.5 10v9.5h13V10" />
+                        <path d="M9.5 19.5V13.5h5v6" />
+                    </svg>
+                    <span>HOME</span>
+                </a>
+                <a class="sidebar-link active" href="history.html" aria-current="page">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="9" />
+                        <path d="M12 7v5l3.3 2" />
+                    </svg>
+                    <span>HISTORY</span>
+                </a>
+                <a class="sidebar-link" href="leave.html">
+                    <svg viewBox="0 0 24 24">
+                        <rect x="3.5" y="5" width="17" height="15" rx="1.5" />
+                        <path d="M3.5 9.5h17" />
+                        <path d="M8 3v4M16 3v4" />
+                        <path d="M8.5 13.5l2 2 4-4" />
+                    </svg>
+                    <span>LEAVE</span>
+                </a>
+                <button class="sidebar-link admin-link" id="adminLink" type="button" hidden>
+                    <svg viewBox="0 0 24 24">
+                        <path
+                            d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                    </svg>
+                    <span>ADMIN</span>
+                </button>
+            </nav>
+            <div class="sidebar-foot">
+                <button class="sidebar-link" id="signOut" type="button" title="Sign out">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M9 4H5.5a1.5 1.5 0 0 0-1.5 1.5v13A1.5 1.5 0 0 0 5.5 20H9" />
+                        <path d="M16 16.5 21 12l-5-4.5" />
+                        <path d="M21 12H9" />
+                    </svg>
+                    <span>SIGN OUT</span>
+                </button>
+            </div>
+        </aside>
+
+        <main class="home-main">
+            <div class="home-topbar">
+                <span class="date-chip" id="today"></span>
+                <span class="secure"><b>●</b> SECURE SESSION</span>
+            </div>
+
+            <div class="home-top-row" style="margin-bottom:28px;align-items:flex-start">
+                <div class="home-greeting">
+                    <p class="step-label">ATTENDANCE HISTORY</p>
+                    <h1 id="histTitle">Your record.</h1>
+                    <p id="histSub">Loading your attendance data…</p>
+                </div>
+
+                <div class="hist-top-right">
+                    <!-- View toggles + week/month nav — compact, left of KPI grid -->
+                    <div class="hist-controls-compact">
+                        <div class="hist-controls-head">
+                            <span class="hist-controls-title">Attendance Log</span>
+                            <div class="period-tabs">
+                                <button class="period-tab active" id="tabWeek" type="button">WEEK</button>
+                                <button class="period-tab" id="tabMonth" type="button">MONTH</button>
+                                <button class="period-tab" id="tabDay" type="button">DAY</button>
+                            </div>
+                        </div>
+
+                        <!-- Week navigation -->
+                        <div class="week-nav" id="weekNav">
+                            <button class="week-nav-btn" id="prevWeek" type="button" title="Previous week">‹</button>
+                            <span class="week-label" id="weekLabel">—</span>
+                            <button class="week-nav-btn" id="nextWeek" type="button" title="Next week">›</button>
+                        </div>
+
+                        <!-- Month navigation -->
+                        <div class="week-nav" id="monthNav" hidden>
+                            <button class="week-nav-btn" id="prevMonth" type="button" title="Previous month">‹</button>
+                            <span class="week-label" id="monthLabel">—</span>
+                            <button class="week-nav-btn" id="nextMonth" type="button" title="Next month">›</button>
+                        </div>
+
+                        <!-- Day navigation — jump straight to any particular date -->
+                        <div class="week-nav day-nav" id="dayNav" hidden>
+                            <button class="week-nav-btn" id="prevDay" type="button" title="Previous day">‹</button>
+                            <input type="date" class="day-picker" id="daySelect" aria-label="Pick a date" />
+                            <button class="week-nav-btn" id="nextDay" type="button" title="Next day">›</button>
+                        </div>
+                    </div>
+
+                    <!-- Summary KPI strip — compact 2x2 -->
+                    <div class="hist-kpi-panel" id="summaryGrid">
+                        <div class="stat-card" style="background:#e9f4ee;border-color:#b9d9c6">
+                            <p class="stat-label" style="color:#3f8f6b">THIS MONTH</p>
+                            <p class="stat-value" id="kpiMonthDays">—</p>
+                            <p class="stat-note">Days present</p>
+                        </div>
+                        <div class="stat-card" style="background:#fdeee9;border-color:#f4c9bb">
+                            <p class="stat-label" style="color:#d97a5f">AVG DAILY TIME</p>
+                            <p class="stat-value" id="kpiAvgTime">—</p>
+                            <p class="stat-note">Hours in office</p>
+                        </div>
+                        <div class="stat-card" style="background:#eef1fb;border-color:#c4cdec">
+                            <p class="stat-label" style="color:#5866b0">THIS WEEK</p>
+                            <p class="stat-value" id="kpiWeekDays">—</p>
+                            <p class="stat-note">Days present</p>
+                        </div>
+                        <div class="stat-card" style="background:#fbf3e2;border-color:#e4cb95">
+                            <p class="stat-label" style="color:#b8863a">TOTAL THIS MONTH</p>
+                            <p class="stat-value" id="kpiTotalHours">—</p>
+                            <p class="stat-note">Hours in office</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <section class="home-panel" style="padding:0;overflow:hidden;margin-bottom:20px">
+                <!-- Combined log: one table-style card, its content swaps
+                     between the selected week's and month's data — no
+                     calendar grid, ever. -->
+                <div id="logView"
+                    style="flex:1 1 auto;min-height:0;display:flex;flex-direction:column;padding:22px 24px">
+                    <div class="day-detail" id="dayDetail" style="margin-bottom:0">
+                        <div class="day-detail-header">
+                            <h4 class="day-detail-title" id="dayDetailTitle">—</h4>
+                            <div class="day-detail-header-actions">
+                                <span class="day-detail-badge badge-absent" id="dayDetailBadge">NO DATA</span>
+                                <button class="excel-export-btn" id="exportExcelBtn" type="button"
+                                    title="Download this table as Excel">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
+                                        <rect x="2" y="3" width="14" height="18" rx="1.5" fill="#1D6F42" />
+                                        <path
+                                            d="M4.6 7.5h2.15l1.55 2.55 1.55-2.55h2.15L9.6 12l2.55 4.5h-2.2l-1.6-2.75-1.6 2.75H4.5L7.1 12 4.6 7.5Z"
+                                            fill="#fff" />
+                                        <path
+                                            d="M14 6h6.5a1.5 1.5 0 0 1 1.5 1.5v9a1.5 1.5 0 0 1-1.5 1.5H14v-3h5.5v-1.5H14v-1.5h5.5V10H14V8.5h5.5V7H14V6Z"
+                                            fill="#1D6F42" />
+                                    </svg>
+                                    <span>EXCEL</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="dayDetailBody">
+                            <p class="no-session-note">Loading…</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <div class="signout-overlay" id="signoutOverlay" aria-hidden="true">
+        <div class="signout-modal">
+            <div class="spinner-wrapper">
+                <div class="spinner-wheel"></div>
+                <div class="spinner-icon">
+                    <span class="emblem-letter">A</span>
+                </div>
+            </div>
+            <p class="signout-label">Signing Out</p>
+            <p class="signout-text">Closing session & saving attendance safely…</p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="soundfx.js"></script>
+    <script src="history.js"></script>
+</body>
+
+</html>

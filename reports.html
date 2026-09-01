@@ -1,0 +1,1172 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101f38" />
+    <title>ATTENZA — Smart Reports</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&family=DM+Mono:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=Space+Grotesk:wght@500;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+    <style>
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .home-shell {
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .home-main {
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 20px;
+        }
+
+        .home-topbar,
+        .home-top-row {
+            flex: 0 0 auto;
+        }
+
+        /* Top Nav & Action Header */
+        .smart-nav-top {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .smart-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .branch-master-select {
+            font: 700 11.5px "Space Grotesk", sans-serif;
+            background: #10203a;
+            color: #f7f3e9;
+            border: 1px solid #233554;
+            padding: 8px 12px;
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+            min-width: 160px;
+            letter-spacing: .5px;
+        }
+
+        .branch-master-select:focus {
+            border-color: var(--coral);
+        }
+
+        .smart-action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 12px;
+            border: 1px solid var(--line);
+            background: #fff;
+            font: 700 10px "DM Mono", monospace;
+            letter-spacing: .7px;
+            color: var(--ink);
+            cursor: pointer;
+            transition: all .15s;
+            border-radius: 2px;
+            height: 34px;
+        }
+
+        .smart-action-btn:hover {
+            border-color: var(--navy);
+            color: var(--navy);
+        }
+
+        .smart-action-btn.btn-excel {
+            background: #eef7f1;
+            border-color: #1D6F42;
+            color: #1D6F42;
+        }
+
+        .smart-action-btn.btn-excel:hover {
+            background: #1D6F42;
+            color: #fff;
+        }
+
+        .smart-action-btn.btn-refresh {
+            background: #edf1fb;
+            border-color: #3b4895;
+            color: #3b4895;
+        }
+
+        .smart-action-btn.btn-refresh:hover {
+            background: #3b4895;
+            color: #fff;
+        }
+
+        /* ── Master Filter & Control Bar ── */
+        .smart-filter-bar {
+            flex: 0 0 auto;
+            background: #fff;
+            border: 1.5px solid var(--line);
+            padding: 8px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 10px;
+            border-radius: 2px;
+        }
+
+        .filter-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .filter-label {
+            font: 700 9px "DM Mono", monospace;
+            letter-spacing: 1px;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        .filter-btn {
+            font: 600 10px "DM Mono", monospace;
+            letter-spacing: .7px;
+            padding: 5px 10px;
+            border: 1px solid var(--line);
+            background: #fff;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all .15s;
+            border-radius: 2px;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--navy);
+            color: var(--navy);
+        }
+
+        .filter-btn.active {
+            background: var(--navy);
+            border-color: var(--navy);
+            color: #fff;
+        }
+
+        .filter-select {
+            font: 600 11px Manrope, sans-serif;
+            border: 1px solid var(--line);
+            background: #fbfbfb;
+            padding: 5px 8px;
+            color: var(--ink);
+            outline: none;
+            cursor: pointer;
+            min-width: 130px;
+            border-radius: 2px;
+        }
+
+        .filter-select:focus {
+            background: #fff;
+            border-color: var(--navy);
+        }
+
+        .filter-date-input {
+            font: 500 10.5px "DM Mono", monospace;
+            border: 1px solid var(--line);
+            background: #fff;
+            padding: 4px 7px;
+            color: var(--ink);
+            outline: none;
+            border-radius: 2px;
+        }
+
+        .filter-date-input:focus {
+            border-color: var(--navy);
+        }
+
+        .filter-search-input {
+            font: 500 11px Manrope, sans-serif;
+            border: 1px solid var(--line);
+            background: #fbfbfb;
+            padding: 5px 10px;
+            color: var(--ink);
+            outline: none;
+            width: 200px;
+            transition: all .15s;
+            border-radius: 2px;
+        }
+
+        .filter-search-input:focus {
+            background: #fff;
+            border-color: var(--navy);
+            width: 240px;
+        }
+
+        .filter-sep {
+            font-size: 10px;
+            color: var(--muted);
+            font-family: "DM Mono", monospace;
+        }
+
+        /* ── Executive Hero KPI Cards Strip ── */
+        .smart-kpi-strip {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            flex: 0 0 auto;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 1100px) {
+            .smart-kpi-strip {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 700px) {
+            .smart-kpi-strip {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .kpi-card {
+            background: #fff;
+            border: 1.5px solid var(--line);
+            padding: 10px 12px;
+            text-align: center;
+            border-radius: 2px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+        }
+
+        .kpi-card.c-workforce {
+            background: #eef1fb;
+            border-color: #c4cdec;
+        }
+
+        .kpi-card.c-workforce::before {
+            background: #4a57a8;
+        }
+
+        .kpi-card.c-workforce .k-label {
+            color: #4a57a8;
+        }
+
+        .kpi-card.c-workforce .k-value {
+            color: #3b4895;
+        }
+
+        .kpi-card.c-attendance {
+            background: #e6f7ef;
+            border-color: #a4debe;
+        }
+
+        .kpi-card.c-attendance::before {
+            background: #288c5a;
+        }
+
+        .kpi-card.c-attendance .k-label {
+            color: #288c5a;
+        }
+
+        .kpi-card.c-attendance .k-value {
+            color: #1e6e45;
+        }
+
+        .kpi-card.c-leaves {
+            background: #fdf4e3;
+            border-color: #e8c97a;
+        }
+
+        .kpi-card.c-leaves::before {
+            background: #b8863a;
+        }
+
+        .kpi-card.c-leaves .k-label {
+            color: #9c6c24;
+        }
+
+        .kpi-card.c-leaves .k-value {
+            color: #875715;
+        }
+
+        .kpi-card.c-pending {
+            background: #fff0eb;
+            border-color: #f0b49a;
+        }
+
+        .kpi-card.c-pending::before {
+            background: #c1554a;
+        }
+
+        .kpi-card.c-pending .k-label {
+            color: #b84c40;
+        }
+
+        .kpi-card.c-pending .k-value {
+            color: #9c362b;
+        }
+
+        .kpi-card.c-quota {
+            background: #f0eef8;
+            border-color: #b8b0de;
+        }
+
+        .kpi-card.c-quota::before {
+            background: #6a5fa0;
+        }
+
+        .kpi-card.c-quota .k-label {
+            color: #584c94;
+        }
+
+        .kpi-card.c-quota .k-value {
+            color: #473a85;
+        }
+
+        .k-label {
+            font: 700 8.5px "DM Mono", monospace;
+            letter-spacing: 1px;
+            margin: 0 0 3px;
+        }
+
+        .k-value {
+            font: 700 22px "Space Grotesk", sans-serif;
+            line-height: 1;
+            margin: 0 0 2px;
+        }
+
+        .k-sub {
+            font-size: 9.5px;
+            color: var(--muted);
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* ── Main Content Container (Tabs + Scrollable Panels) ── */
+        .smart-content-hub {
+            flex: 1 1 0;
+            min-height: 0;
+            background: #fff;
+            border: 1.5px solid var(--line);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border-radius: 2px;
+        }
+
+        /* 5 Master Tabs */
+        .smart-tab-bar {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--line);
+            background: #f8f7f3;
+            padding: 0 12px;
+            overflow-x: auto;
+        }
+
+        .smart-tabs {
+            display: flex;
+            gap: 2px;
+        }
+
+        .stab-btn {
+            padding: 10px 14px;
+            border: none;
+            background: transparent;
+            font: 700 11px Manrope, sans-serif;
+            letter-spacing: .4px;
+            color: var(--muted);
+            cursor: pointer;
+            border-bottom: 2.5px solid transparent;
+            transition: all .15s;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stab-btn:hover {
+            color: var(--ink);
+        }
+
+        .stab-btn.active {
+            color: var(--navy);
+            border-bottom-color: var(--coral);
+            background: #fff;
+        }
+
+        .stab-badge {
+            font: 700 9px "DM Mono", monospace;
+            background: #e8ebf5;
+            color: #3b4895;
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+
+        .stab-badge.badge-alert {
+            background: #fdeee9;
+            color: #c1554a;
+        }
+
+        .smart-status-indicator {
+            font: 500 10px "DM Mono", monospace;
+            color: var(--muted);
+            padding: 0 8px;
+            white-space: nowrap;
+        }
+
+        /* ── Scrollable Tab Panels & Invisible Scrollbars ── */
+        .stab-panel {
+            flex: 1 1 0;
+            min-height: 0;
+            overflow: auto;
+            display: flex;
+            flex-direction: column;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE and Edge */
+        }
+
+        .stab-panel::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+            width: 0;
+            height: 0;
+        }
+
+        /* Hide scrollbars everywhere in smart reports while keeping smooth scrolling */
+        .smart-content-hub,
+        .smart-tab-bar,
+        .smart-tabs,
+        .branch-cards-grid,
+        .insights-container,
+        .smart-table,
+        table,
+        tbody {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .smart-content-hub::-webkit-scrollbar,
+        .smart-tab-bar::-webkit-scrollbar,
+        .smart-tabs::-webkit-scrollbar,
+        .branch-cards-grid::-webkit-scrollbar,
+        .insights-container::-webkit-scrollbar,
+        .smart-table::-webkit-scrollbar,
+        table::-webkit-scrollbar,
+        tbody::-webkit-scrollbar {
+            display: none;
+            width: 0;
+            height: 0;
+        }
+
+        .stab-panel[hidden] {
+            display: none !important;
+        }
+
+        /* ── Data Tables ── */
+        .smart-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            text-align: left;
+        }
+
+        .smart-table th {
+            position: sticky;
+            top: 0;
+            background: #10203a;
+            padding: 11px 12px;
+            font: 700 9.5px "DM Mono", monospace;
+            letter-spacing: 1px;
+            color: #f7f3e9;
+            border-bottom: 2px solid #091322;
+            white-space: nowrap;
+            z-index: 5;
+            text-transform: uppercase;
+        }
+
+        .smart-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #10203a;
+            color: var(--ink);
+            vertical-align: middle;
+        }
+
+        .smart-table tr:hover td {
+            background: #f0f4fa;
+        }
+
+        /* Branch Comparison Grid (Tab 1) */
+        .branch-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 12px;
+            padding: 16px;
+        }
+
+        .b-card {
+            border: 1.5px solid var(--line);
+            background: #fff;
+            padding: 14px;
+            border-radius: 3px;
+            transition: all .2s;
+            cursor: pointer;
+        }
+
+        .b-card:hover {
+            border-color: var(--navy);
+            box-shadow: 0 4px 12px rgba(16, 32, 58, .06);
+            transform: translateY(-2px);
+        }
+
+        .b-card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .b-card-title {
+            font: 700 15px "Space Grotesk", sans-serif;
+            color: var(--navy);
+            margin: 0;
+        }
+
+        .b-card-meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .b-meta-box {
+            background: #f8f9fa;
+            padding: 6px 8px;
+            border-radius: 2px;
+        }
+
+        .b-meta-lbl {
+            font: 600 8.5px "DM Mono", monospace;
+            color: var(--muted);
+            margin: 0 0 2px;
+        }
+
+        .b-meta-val {
+            font: 700 14px "Space Grotesk", sans-serif;
+            color: var(--ink);
+            margin: 0;
+        }
+
+        .b-card-foot {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font: 600 10px "DM Mono", monospace;
+            color: var(--muted);
+            margin-top: 6px;
+        }
+
+        /* Badges & Chips */
+        .chip-branch {
+            display: inline-block;
+            font: 700 9.5px "DM Mono", monospace;
+            background: #10203a;
+            color: #fff;
+            padding: 2px 7px;
+            border-radius: 2px;
+            letter-spacing: .5px;
+        }
+
+        .chip-type {
+            display: inline-block;
+            font: 700 9.5px "DM Mono", monospace;
+            padding: 2px 6px;
+            border-radius: 2px;
+            letter-spacing: .4px;
+        }
+
+        .chip-medical {
+            background: #eef1fb;
+            color: #3b4895;
+            border: 1px solid #c4cdec;
+        }
+
+        .chip-personal {
+            background: #e8f5ee;
+            color: #2e7a56;
+            border: 1px solid #96ccb0;
+        }
+
+        .chip-halfday {
+            background: #fdf4e3;
+            color: #8c5d1e;
+            border: 1px solid #e8c97a;
+        }
+
+        .chip-early {
+            background: #f0eef8;
+            color: #55498f;
+            border: 1px solid #b8b0de;
+        }
+
+        .chip-signin {
+            display: inline-block;
+            font: 700 9.5px "DM Mono", monospace;
+            background: #e6f5ec;
+            color: #15803d;
+            border: 1px solid #7fbd9a;
+            padding: 2.5px 8px;
+            border-radius: 3px;
+            letter-spacing: .5px;
+        }
+
+        .chip-signout {
+            display: inline-block;
+            font: 700 9.5px "DM Mono", monospace;
+            background: #fdeee9;
+            color: #b91c1c;
+            border: 1px solid #f4c9bb;
+            padding: 2.5px 8px;
+            border-radius: 3px;
+            letter-spacing: .5px;
+        }
+
+        .badge-balance-good {
+            background: #e6f5ec;
+            color: #2e7d53;
+            border: 1px solid #b9d9c6;
+            font: 700 11px "Space Grotesk", sans-serif;
+            padding: 2px 7px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+
+        .badge-balance-low {
+            background: #fbf3e2;
+            color: #b8863a;
+            border: 1px solid #e4cb95;
+            font: 700 11px "Space Grotesk", sans-serif;
+            padding: 2px 7px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+
+        .badge-balance-empty {
+            background: #fdeee9;
+            color: #c1554a;
+            border: 1px solid #f4c9bb;
+            font: 700 11px "Space Grotesk", sans-serif;
+            padding: 2px 7px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+
+        .btn-drilldown {
+            padding: 4px 8px;
+            font: 700 9px "DM Mono", monospace;
+            border: 1px solid var(--line);
+            background: #fff;
+            color: var(--navy);
+            cursor: pointer;
+            transition: all .15s;
+            white-space: nowrap;
+            border-radius: 2px;
+        }
+
+        .btn-drilldown:hover {
+            background: var(--navy);
+            color: #fff;
+            border-color: var(--navy);
+        }
+
+        /* Insights Cards (Tab 5) */
+        .insights-container {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .insight-card {
+            border: 1.5px solid var(--line);
+            padding: 14px 16px;
+            border-radius: 3px;
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+        }
+
+        .insight-card.i-alert {
+            background: #fff5f2;
+            border-color: #f5b7a8;
+        }
+
+        .insight-card.i-warning {
+            background: #fdf8eb;
+            border-color: #edd18a;
+        }
+
+        .insight-card.i-info {
+            background: #f0f4fc;
+            border-color: #b3c5ee;
+        }
+
+        .insight-card.i-success {
+            background: #eef8f2;
+            border-color: #9cd4b4;
+        }
+
+        .insight-icon {
+            font-size: 20px;
+            line-height: 1;
+            flex: 0 0 auto;
+        }
+
+        .insight-content h4 {
+            font: 700 13px Manrope, sans-serif;
+            margin: 0 0 4px;
+            color: var(--ink);
+        }
+
+        .insight-content p {
+            font-size: 11.5px;
+            line-height: 1.5;
+            margin: 0;
+            color: var(--ink);
+            opacity: .9;
+        }
+
+        /* Empty States */
+        .empty-wrap {
+            text-align: center;
+            padding: 48px 16px;
+            color: var(--muted);
+        }
+
+        .empty-wrap .e-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .empty-wrap .e-title {
+            font: 700 14px Manrope, sans-serif;
+            color: var(--ink);
+            margin: 0 0 4px;
+        }
+
+        .empty-wrap .e-sub {
+            font-size: 11.5px;
+            color: var(--muted);
+            margin: 0;
+        }
+
+        @media print {
+
+            .sidebar,
+            .home-topbar,
+            .smart-filter-bar,
+            .smart-tab-bar,
+            .smart-action-btn {
+                display: none !important;
+            }
+
+            .home-shell,
+            .home-main,
+            .smart-content-hub,
+            .stab-panel {
+                height: auto !important;
+                overflow: visible !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="home-shell">
+        <!-- ── Vertical Bar / Sidebar Navigation ── -->
+        <aside class="sidebar" aria-label="Main navigation">
+            <a class="sidebar-logo" href="home.html" title="ATTENZA Home">
+                <span class="emblem-letter">A</span>
+            </a>
+            <nav class="sidebar-nav">
+                <a class="sidebar-link" href="home.html" title="Home">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M3 11.5 12 4l9 7.5" />
+                        <path d="M5.5 10v9.5h13V10" />
+                        <path d="M9.5 19.5V13.5h5v6" />
+                    </svg>
+                    <span>HOME</span>
+                </a>
+                <a class="sidebar-link" href="history.html" title="Attendance History">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="9" />
+                        <path d="M12 7v5l3.3 2" />
+                    </svg>
+                    <span>HISTORY</span>
+                </a>
+                <a class="sidebar-link" href="leave.html" title="Leave Applications">
+                    <svg viewBox="0 0 24 24">
+                        <rect x="3.5" y="5" width="17" height="15" rx="1.5" />
+                        <path d="M3.5 9.5h17" />
+                        <path d="M8 3v4M16 3v4" />
+                        <path d="M8.5 13.5l2 2 4-4" />
+                    </svg>
+                    <span>LEAVE</span>
+                </a>
+                <!-- New SMART REPORTS item -->
+                <a class="sidebar-link active" href="reports.html" aria-current="page"
+                    title="Smart Reports & All Branches">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M21 21H3V3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M7 14l4-4 4 4 5-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <span>SMART REPORTS</span>
+                </a>
+                <a class="sidebar-link" href="admin.html" title="Admin Requests & Decisions">
+                    <svg viewBox="0 0 24 24">
+                        <path
+                            d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                    </svg>
+                    <span>ADMIN</span>
+                </a>
+            </nav>
+            <div class="sidebar-foot">
+                <button class="sidebar-link" id="signOut" type="button" title="Sign out">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M9 4H5.5a1.5 1.5 0 0 0-1.5 1.5v13A1.5 1.5 0 0 0 5.5 20H9" />
+                        <path d="M16 16.5 21 12l-5-4.5" />
+                        <path d="M21 12H9" />
+                    </svg>
+                    <span>SIGN OUT</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- ── Main Application Surface ── -->
+        <main class="home-main">
+            <div class="home-topbar">
+                <span class="date-chip" id="today"></span>
+                <span class="secure"><b>●</b> ENTERPRISE ANALYTICS</span>
+            </div>
+
+            <!-- Top Header & Actions -->
+            <div class="home-top-row smart-nav-top">
+                <div class="home-greeting">
+                    <p class="step-label" id="smartStepLabel">SMART ANALYTICS</p>
+                    <h1 id="smartMainTitle">Smart Reports.</h1>
+                    <p id="smartSubtitle">Real-time intelligence, branch comparison, workforce attendance & leave
+                        balances.</p>
+                </div>
+
+                <div class="smart-header-actions">
+                    <!-- Global Branch Selector -->
+                    <select class="branch-master-select" id="globalBranchFilter" title="Filter by branch">
+                        <option value="all">ALL BRANCHES</option>
+                    </select>
+
+                    <button class="smart-action-btn btn-excel" id="btnExportExcel" type="button"
+                        title="Export multi-sheet Excel report">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none">
+                            <rect x="2" y="3" width="14" height="18" rx="1.5" fill="#1D6F42" />
+                            <path
+                                d="M4.6 7.5h2.15l1.55 2.55 1.55-2.55h2.15L9.6 12l2.55 4.5h-2.2l-1.6-2.75-1.6 2.75H4.5L7.1 12 4.6 7.5Z"
+                                fill="#fff" />
+                            <path
+                                d="M14 6h6.5a1.5 1.5 0 0 1 1.5 1.5v9a1.5 1.5 0 0 1-1.5 1.5H14v-3h5.5v-1.5H14v-1.5h5.5V10H14V8.5h5.5V7H14V6Z"
+                                fill="#1D6F42" />
+                        </svg>
+                        <span>EXCEL</span>
+                    </button>
+
+                    <button class="smart-action-btn" id="btnPrintReport" type="button" title="Print this report">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path
+                                d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z" />
+                        </svg>
+                        <span>PRINT</span>
+                    </button>
+
+                    <button class="smart-action-btn btn-refresh" id="btnRefreshData" type="button"
+                        title="Refresh live data">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M23 4v6h-6M1 20v-6h6" />
+                            <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
+                        </svg>
+                        <span>SYNC</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ── Master Filter Bar ── -->
+            <div class="smart-filter-bar">
+                <div class="filter-row">
+                    <!-- Period Range Buttons -->
+                    <div class="filter-group">
+                        <span class="filter-label">TIMEFRAME ·</span>
+                        <button class="filter-btn active" data-range="all" type="button">ALL TIME</button>
+                        <button class="filter-btn" data-range="today" type="button">TODAY</button>
+                        <button class="filter-btn" data-range="thisweek" type="button">THIS WEEK</button>
+                        <button class="filter-btn" data-range="thismonth" type="button">THIS MONTH</button>
+                        <button class="filter-btn" data-range="thisyear" type="button">THIS YEAR</button>
+                        <span class="filter-sep">·</span>
+                        <input type="date" class="filter-date-input" id="filterDateFrom" title="From date" />
+                        <span class="filter-sep">TO</span>
+                        <input type="date" class="filter-date-input" id="filterDateTo" title="To date" />
+                        <button class="filter-btn" id="btnApplyCustomDate" type="button">APPLY</button>
+                    </div>
+
+                    <!-- Search & Quick Filters -->
+                    <div class="filter-group">
+                        <select class="filter-select" id="filterEmployee" title="Select employee">
+                            <option value="all">All Employees</option>
+                        </select>
+                        <select class="filter-select" id="filterLeaveType" title="Filter by leave type">
+                            <option value="all">All Leave Types</option>
+                            <option value="medical purpose">Medical Purpose</option>
+                            <option value="personal leave">Personal Leave</option>
+                            <option value="half day">Half Day</option>
+                            <option value="early leave">Early Leave</option>
+                        </select>
+                        <select class="filter-select" id="filterStatus" title="Filter by status">
+                            <option value="all">All Statuses</option>
+                            <option value="approved">Approved</option>
+                            <option value="pending">Pending</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                        <input type="search" class="filter-search-input" id="filterSearch"
+                            placeholder="Search staff, branch, reason…" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Executive Hero KPI Strip ── -->
+            <div class="smart-kpi-strip">
+                <div class="kpi-card c-workforce">
+                    <p class="k-label">TOTAL WORKFORCE</p>
+                    <p class="k-value" id="kpiTotalWorkforce">—</p>
+                    <p class="k-sub" id="kpiTotalWorkforceSub">Across all branches</p>
+                </div>
+                <div class="kpi-card c-attendance">
+                    <p class="k-label">TODAY'S ATTENDANCE</p>
+                    <p class="k-value" id="kpiAttendanceRate">—</p>
+                    <p class="k-sub" id="kpiAttendanceRateSub">Present workforce today</p>
+                </div>
+                <div class="kpi-card c-leaves">
+                    <p class="k-label">APPROVED LEAVE DAYS</p>
+                    <p class="k-value" id="kpiDaysDeducted">—</p>
+                    <p class="k-sub" id="kpiDaysDeductedSub">In selected timeframe</p>
+                </div>
+                <div class="kpi-card c-pending">
+                    <p class="k-label">PENDING REQUESTS</p>
+                    <p class="k-value" id="kpiPendingRequests">—</p>
+                    <p class="k-sub" id="kpiPendingRequestsSub">Waiting for admin review</p>
+                </div>
+                <div class="kpi-card c-quota">
+                    <p class="k-label">TOTAL EARNED QUOTA LEFT</p>
+                    <p class="k-value" id="kpiTotalQuotaLeft">—</p>
+                    <p class="k-sub" id="kpiTotalQuotaLeftSub">Available enterprise quota</p>
+                </div>
+            </div>
+
+            <!-- ── Master 5 Tabs Hub ── -->
+            <div class="smart-content-hub">
+                <div class="smart-tab-bar">
+                    <div class="smart-tabs" role="tablist">
+                        <button class="stab-btn active" id="tabBtnBranches" type="button" role="tab"
+                            aria-selected="true">
+                            <span>BRANCH COMPARISON & OVERVIEW</span>
+                            <span class="stab-badge" id="tabBadgeBranches">0</span>
+                        </button>
+                        <button class="stab-btn" id="tabBtnBalances" type="button" role="tab" aria-selected="false">
+                            <span>EMPLOYEE LEAVE BALANCES</span>
+                            <span class="stab-badge" id="tabBadgeBalances">0</span>
+                        </button>
+                        <button class="stab-btn" id="tabBtnHistory" type="button" role="tab" aria-selected="false">
+                            <span>MASTER LEAVE HISTORY LOG</span>
+                            <span class="stab-badge" id="tabBadgeHistory">0</span>
+                        </button>
+                        <button class="stab-btn" id="tabBtnAttendance" type="button" role="tab" aria-selected="false">
+                            <span>ATTENDANCE & SIGN-IN LOGS</span>
+                            <span class="stab-badge" id="tabBadgeAttendance">0</span>
+                        </button>
+                        <button class="stab-btn" id="tabBtnInsights" type="button" role="tab" aria-selected="false">
+                            <span>SMART INSIGHTS & ALERTS</span>
+                            <span class="stab-badge badge-alert" id="tabBadgeInsights">0</span>
+                        </button>
+                    </div>
+                    <div class="smart-status-indicator" id="smartFilterSummary">
+                        Showing all branch records
+                    </div>
+                </div>
+
+                <!-- ── TAB 1: Branch Comparison & Overview ── -->
+                <div class="stab-panel" id="panelBranches">
+                    <div class="branch-cards-grid" id="branchCardsContainer">
+                        <div class="empty-wrap">
+                            <div class="e-icon">•</div>
+                            <p class="e-title">Loading branch data…</p>
+                            <p class="e-sub">Gathering branch workforce and leave statistics.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── TAB 2: Employee Leave Balances ── -->
+                <div class="stab-panel" id="panelBalances" hidden>
+                    <table class="smart-table" id="tableBalances">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>EMPLOYEE</th>
+                                <th>BRANCH</th>
+                                <th>ROLE</th>
+                                <th>ALLOTTED</th>
+                                <th>DAYS USED</th>
+                                <th>REMAINING LEAVE</th>
+                                <th>MEDICAL</th>
+                                <th>PERSONAL</th>
+                                <th>HALF DAY</th>
+                                <th>EARLY LEAVE</th>
+                                <th>PENDING</th>
+                                <th style="text-align:right">ACTION</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bodyBalances">
+                            <tr>
+                                <td colspan="13" class="empty-wrap">
+                                    <div class="e-icon">↻</div>
+                                    <p class="e-title">Loading employee balances…</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- ── TAB 3: Master Leave History Log ── -->
+                <div class="stab-panel" id="panelHistory" hidden>
+                    <table class="smart-table" id="tableHistory">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>EMPLOYEE</th>
+                                <th>BRANCH</th>
+                                <th>LEAVE TYPE</th>
+                                <th>FROM DATE</th>
+                                <th>TO DATE</th>
+                                <th>DURATION</th>
+                                <th>REASON</th>
+                                <th>STATUS</th>
+                                <th>REVIEWED BY</th>
+                                <th>APPLIED AT</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bodyHistory">
+                            <tr>
+                                <td colspan="11" class="empty-wrap">
+                                    <div class="e-icon">↻</div>
+                                    <p class="e-title">Loading leave history…</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- ── TAB 4: Attendance Logs ── -->
+                <div class="stab-panel" id="panelAttendance" hidden>
+                    <table class="smart-table" id="tableAttendance">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>EMPLOYEE</th>
+                                <th>BRANCH</th>
+                                <th>DATE</th>
+                                <th>TIME</th>
+                                <th>EVENT TYPE</th>
+                                <th>GPS DISTANCE</th>
+                                <th>STATUS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bodyAttendance">
+                            <tr>
+                                <td colspan="8" class="empty-wrap">
+                                    <div class="e-icon">↻</div>
+                                    <p class="e-title">Loading attendance logs…</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- ── TAB 5: Smart Insights & Alerts ── -->
+                <div class="stab-panel" id="panelInsights" hidden>
+                    <div class="insights-container" id="insightsContainer">
+                        <div class="empty-wrap">
+                            <div class="e-icon">•</div>
+                            <p class="e-title">Analyzing workforce patterns…</p>
+                            <p class="e-sub">Generating smart insights and quota notifications.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <div class="signout-overlay" id="signoutOverlay" aria-hidden="true">
+        <div class="signout-modal">
+            <div class="spinner-wrapper">
+                <div class="spinner-wheel"></div>
+                <div class="spinner-icon">
+                    <span class="emblem-letter">A</span>
+                </div>
+            </div>
+            <p class="signout-label">Signing Out</p>
+            <p class="signout-text">Closing session & saving attendance safely…</p>
+        </div>
+    </div>
+
+    <!-- SheetJS for Multi-Sheet Excel Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="soundfx.js"></script>
+    <script src="reports-auth.js"></script>
+    <script src="reports.js"></script>
+</body>
+
+</html>

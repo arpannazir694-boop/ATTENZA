@@ -1,0 +1,1228 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101f38" />
+    <title>ATTENZA — Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&family=DM+Mono:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=Space+Grotesk:wght@500;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+    <style>
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .home-shell {
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .home-main {
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 24px;
+        }
+
+        .home-topbar,
+        .home-top-row {
+            flex: 0 0 auto;
+        }
+
+        /* ── Top row with View Switcher ── */
+        .admin-nav-top {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .admin-view-switcher {
+            display: inline-flex;
+            gap: 4px;
+            background: #e8ebf5;
+            padding: 4px;
+            border-radius: 4px;
+            border: 1px solid var(--line);
+        }
+
+        .view-switch-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 14px;
+            border: none;
+            background: transparent;
+            font: 700 11px Manrope, sans-serif;
+            letter-spacing: .4px;
+            color: var(--muted);
+            cursor: pointer;
+            border-radius: 3px;
+            transition: all .15s ease;
+        }
+
+        .view-switch-btn svg {
+            width: 14px;
+            height: 14px;
+            stroke-width: 2;
+        }
+
+        .view-switch-btn:hover {
+            color: var(--ink);
+            background: rgba(255, 255, 255, .5);
+        }
+
+        .view-switch-btn.active {
+            background: #fff;
+            color: var(--navy);
+            box-shadow: 0 1px 4px rgba(16, 32, 58, .1);
+        }
+
+        .tab-badge {
+            font: 700 9px "DM Mono", monospace;
+            padding: 2px 6px;
+            border-radius: 10px;
+            background: var(--coral);
+            color: #fff;
+            line-height: 1;
+        }
+
+        .tab-badge.badge-zero {
+            background: #c4cdec;
+            color: var(--navy);
+        }
+
+        /* ── View Container Panels ── */
+        .admin-view-panel {
+            flex: 1 1 0;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .admin-view-panel[hidden] {
+            display: none !important;
+        }
+
+        /* ── Two-column panel layout (Requests view) ── */
+        .admin-columns {
+            flex: 1 1 0;
+            min-height: 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 960px) {
+            .admin-columns {
+                grid-template-columns: 1fr;
+                overflow-y: auto;
+            }
+        }
+
+        /* ── Shared card chrome ── */
+        .admin-card {
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            border-radius: 0;
+            overflow: hidden;
+            background: #fff;
+        }
+
+        /* Sign-in card: navy accent */
+        .card-signin {
+            border: 1.5px solid #c4cdec;
+        }
+
+        .card-signin .card-header {
+            background: #10203a;
+            color: #f7f3e9;
+        }
+
+        .card-signin .card-header .card-icon {
+            background: #c9e5d9;
+            color: #10203a;
+        }
+
+        .card-signin .card-header .card-count {
+            background: rgba(201, 229, 217, .18);
+            color: #c9e5d9;
+            border: 1px solid rgba(201, 229, 217, .3);
+        }
+
+        /* Leave card: warm amber accent */
+        .card-leave {
+            border: 1.5px solid #e4cb95;
+        }
+
+        .card-leave .card-header {
+            background: #3a2a10;
+            color: #fdf6e8;
+        }
+
+        .card-leave .card-header .card-icon {
+            background: #f0c96a;
+            color: #3a2a10;
+        }
+
+        .card-leave .card-header .card-count {
+            background: rgba(240, 201, 106, .15);
+            color: #f0c96a;
+            border: 1px solid rgba(240, 201, 106, .3);
+        }
+
+        .card-header {
+            flex: 0 0 auto;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .card-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            flex: 0 0 auto;
+        }
+
+        .card-icon svg {
+            width: 17px;
+            height: 17px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .card-header-text {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        .card-title {
+            font: 700 13px Manrope, sans-serif;
+            letter-spacing: .1px;
+            margin: 0 0 2px;
+        }
+
+        .card-subtitle {
+            font: 500 9.5px "DM Mono", monospace;
+            letter-spacing: .8px;
+            opacity: .7;
+            margin: 0;
+        }
+
+        .card-count {
+            flex: 0 0 auto;
+            font: 700 18px "Space Grotesk", sans-serif;
+            padding: 5px 12px;
+            border-radius: 4px;
+            line-height: 1;
+        }
+
+        /* ── Table area ── */
+        .card-body {
+            flex: 1 1 0;
+            min-height: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+        }
+
+        .table-head {
+            flex: 0 0 auto;
+            display: grid;
+            padding: 0 16px;
+            border-bottom: 1px solid var(--line);
+            background: #f6f4ef;
+        }
+
+        .card-signin .table-head {
+            grid-template-columns: 1fr 1fr auto auto;
+        }
+
+        .card-leave .table-head {
+            grid-template-columns: 1fr auto auto auto;
+        }
+
+        .th {
+            padding: 9px 8px;
+            font: 500 9px "DM Mono", monospace;
+            letter-spacing: 1px;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        .th:last-child {
+            text-align: right;
+        }
+
+        .table-body {
+            flex: 1 1 0;
+            min-height: 0;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+
+        .table-body::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* ── Request rows ── */
+        .req-row {
+            display: grid;
+            padding: 0 16px;
+            border-bottom: 1px solid var(--line);
+            align-items: center;
+            min-height: 56px;
+        }
+
+        .card-signin .req-row {
+            grid-template-columns: 1fr 1fr auto auto;
+        }
+
+        .card-leave .req-row {
+            grid-template-columns: 1fr auto auto auto;
+        }
+
+        .req-row:last-child {
+            border-bottom: 0;
+        }
+
+        .req-row:hover {
+            background: #fafaf9;
+        }
+
+        .cell {
+            padding: 10px 8px;
+            font-size: 12px;
+            color: var(--ink);
+        }
+
+        .cell-main {
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        .cell-sub {
+            display: block;
+            font-size: 10px;
+            color: var(--muted);
+            margin-top: 2px;
+            font-weight: 400;
+        }
+
+        .cell-badge {
+            display: inline-block;
+            font: 500 9px "DM Mono", monospace;
+            letter-spacing: .7px;
+            padding: 3px 8px;
+            border-radius: 3px;
+            white-space: nowrap;
+        }
+
+        .badge-navy {
+            background: #eef1fb;
+            color: #5866b0;
+            border: 1px solid #c4cdec;
+        }
+
+        .badge-amber {
+            background: #fbf3e2;
+            color: #b8863a;
+            border: 1px solid #e4cb95;
+        }
+
+        .badge-coral {
+            background: #fdeee9;
+            color: #d97a5f;
+            border: 1px solid #f4c9bb;
+        }
+
+        .cell-actions {
+            padding: 10px 8px;
+            display: flex;
+            gap: 6px;
+            justify-content: flex-end;
+        }
+
+        .btn-approve,
+        .btn-decline {
+            padding: 6px 12px;
+            font: 700 9px Manrope, sans-serif;
+            letter-spacing: .5px;
+            border: 1px solid;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: opacity .15s;
+        }
+
+        .btn-approve:disabled,
+        .btn-decline:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+        }
+
+        .btn-approve {
+            background: #e6f5ec;
+            border-color: #7fbd9a;
+            color: #2e7d53;
+        }
+
+        .btn-approve:hover:not(:disabled) {
+            background: #7fbd9a;
+            color: #fff;
+        }
+
+        .btn-decline {
+            background: #fdeee9;
+            border-color: #e79684;
+            color: #c1554a;
+        }
+
+        .btn-decline:hover:not(:disabled) {
+            background: #e79684;
+            color: #fff;
+        }
+
+        /* ── Empty / loading state ── */
+        .empty-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 48px 24px;
+            text-align: center;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .empty-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-size: 20px;
+        }
+
+        .card-signin .empty-icon {
+            background: #eef1fb;
+            color: #5866b0;
+        }
+
+        .card-leave .empty-icon {
+            background: #fbf3e2;
+            color: #b8863a;
+        }
+
+        .empty-label {
+            font: 700 13px Manrope, sans-serif;
+            color: var(--ink);
+            margin: 0;
+        }
+
+        .empty-sub {
+            font-size: 11px;
+            color: var(--muted);
+            margin: 0;
+            max-width: 220px;
+            line-height: 1.6;
+        }
+
+        .reason-text {
+            font-size: 11px;
+            color: var(--ink);
+            margin-top: 4px;
+            display: block;
+            opacity: .85;
+        }
+
+        /* ═════════════════════════════════════════════════════════════════
+           REPORTS VIEW STYLING (ব্রাঞ্চ রিপোর্ট ও লিভ ব্যালেন্স)
+           ═════════════════════════════════════════════════════════════════ */
+        .reports-dashboard {
+            flex: 1 1 0;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* Top Filter / Action Bar */
+        .reports-filter-panel {
+            flex: 0 0 auto;
+            background: #fff;
+            border: 1.5px solid var(--line);
+            padding: 12px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .reports-filter-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .reports-filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .branch-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #10203a;
+            color: #f7f3e9;
+            font: 700 10px "DM Mono", monospace;
+            letter-spacing: .8px;
+            padding: 6px 12px;
+            border-radius: 2px;
+        }
+
+        .report-select {
+            font: 600 11px Manrope, sans-serif;
+            border: 1px solid var(--line);
+            background: #fff;
+            padding: 6px 10px;
+            color: var(--ink);
+            outline: none;
+            cursor: pointer;
+            min-width: 140px;
+        }
+
+        .report-select:focus {
+            border-color: var(--navy);
+        }
+
+        .filter-label {
+            font: 600 9px "DM Mono", monospace;
+            letter-spacing: 1px;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        .filter-btn {
+            font: 600 10px "DM Mono", monospace;
+            letter-spacing: .8px;
+            padding: 6px 11px;
+            border: 1px solid var(--line);
+            background: #fff;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--navy);
+            color: var(--navy);
+        }
+
+        .filter-btn.active {
+            background: var(--navy);
+            border-color: var(--navy);
+            color: #fff;
+        }
+
+        .filter-date-input {
+            font: 500 11px "DM Mono", monospace;
+            border: 1px solid var(--line);
+            background: #fff;
+            padding: 5px 8px;
+            color: var(--ink);
+            outline: none;
+        }
+
+        .filter-date-input:focus {
+            border-color: var(--navy);
+        }
+
+        .filter-sep {
+            font-size: 10px;
+            color: var(--muted);
+            font-family: "DM Mono", monospace;
+        }
+
+        .report-search-input {
+            font: 500 11px Manrope, sans-serif;
+            border: 1px solid var(--line);
+            background: #fbfbfb;
+            padding: 6px 10px;
+            color: var(--ink);
+            outline: none;
+            width: 180px;
+            transition: border-color .15s, background .15s;
+        }
+
+        .report-search-input:focus {
+            background: #fff;
+            border-color: var(--navy);
+        }
+
+        .excel-export-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border: 1px solid #1D6F42;
+            background: #eef7f1;
+            font: 700 10px "DM Mono", monospace;
+            letter-spacing: .7px;
+            color: #1D6F42;
+            cursor: pointer;
+            transition: background .15s, color .15s;
+        }
+
+        .excel-export-btn:hover {
+            background: #1D6F42;
+            color: #fff;
+        }
+
+        .excel-export-btn svg {
+            flex: 0 0 auto;
+        }
+
+        /* ── Branch KPI Strip ── */
+        .reports-kpi-strip {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            flex: 0 0 auto;
+        }
+
+        @media (max-width: 1100px) {
+            .reports-kpi-strip {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 700px) {
+            .reports-kpi-strip {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .rkpi-card {
+            background: #fff;
+            border: 1.5px solid var(--line);
+            padding: 10px 12px;
+            text-align: center;
+            border-radius: 2px;
+        }
+
+        .rkpi-card.kpi-emp {
+            background: #eef1fb;
+            border-color: #c4cdec;
+        }
+
+        .rkpi-card.kpi-emp .rkpi-label {
+            color: #4a57a8;
+        }
+
+        .rkpi-card.kpi-emp .rkpi-value {
+            color: #3b4895;
+        }
+
+        .rkpi-card.kpi-leaves {
+            background: #fff0eb;
+            border-color: #f0b49a;
+        }
+
+        .rkpi-card.kpi-leaves .rkpi-label {
+            color: #c96845;
+        }
+
+        .rkpi-card.kpi-leaves .rkpi-value {
+            color: #b7522d;
+        }
+
+        .rkpi-card.kpi-deducted {
+            background: #fdf4e3;
+            border-color: #e8c97a;
+        }
+
+        .rkpi-card.kpi-deducted .rkpi-label {
+            color: #a07030;
+        }
+
+        .rkpi-card.kpi-deducted .rkpi-value {
+            color: #8c5d1e;
+        }
+
+        .rkpi-card.kpi-types {
+            background: #f0eef8;
+            border-color: #b8b0de;
+        }
+
+        .rkpi-card.kpi-types .rkpi-label {
+            color: #6a5fa0;
+        }
+
+        .rkpi-card.kpi-types .rkpi-value {
+            color: #55498f;
+        }
+
+        .rkpi-card.kpi-quota {
+            background: #e8f5ee;
+            border-color: #96ccb0;
+        }
+
+        .rkpi-card.kpi-quota .rkpi-label {
+            color: #2e7a56;
+        }
+
+        .rkpi-card.kpi-quota .rkpi-value {
+            color: #1e6342;
+        }
+
+        .rkpi-label {
+            font: 600 8.5px "DM Mono", monospace;
+            letter-spacing: 1px;
+            margin: 0 0 4px;
+        }
+
+        .rkpi-value {
+            font: 700 22px "Space Grotesk", sans-serif;
+            line-height: 1;
+            margin: 0 0 3px;
+        }
+
+        .rkpi-sub {
+            font-size: 9.5px;
+            color: var(--muted);
+            margin: 0;
+        }
+
+        /* ── Reports Content Main (Sub-tabs + Tables) ── */
+        .reports-content-panel {
+            flex: 1 1 0;
+            min-height: 0;
+            background: #fff;
+            border: 1.5px solid var(--line);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .reports-subnav {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--line);
+            background: #f6f4ef;
+            padding: 0 16px;
+        }
+
+        .reports-subtabs {
+            display: flex;
+            gap: 2px;
+        }
+
+        .subtab-btn {
+            padding: 10px 16px;
+            border: none;
+            background: transparent;
+            font: 700 11px Manrope, sans-serif;
+            letter-spacing: .5px;
+            color: var(--muted);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all .15s;
+        }
+
+        .subtab-btn:hover {
+            color: var(--ink);
+        }
+
+        .subtab-btn.active {
+            color: var(--navy);
+            border-bottom-color: var(--coral);
+            background: #fff;
+        }
+
+        .reports-table-count {
+            font: 500 10px "DM Mono", monospace;
+            color: var(--muted);
+        }
+
+        /* ── Report Tables ── */
+        .report-table-scroll {
+            flex: 1 1 0;
+            min-height: 0;
+            overflow: auto;
+        }
+
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            text-align: left;
+        }
+
+        .report-table th {
+            position: sticky;
+            top: 0;
+            background: #f8f9fb;
+            padding: 10px 12px;
+            font: 600 9px "DM Mono", monospace;
+            letter-spacing: .9px;
+            color: var(--muted);
+            border-bottom: 1px solid var(--line);
+            white-space: nowrap;
+            z-index: 2;
+        }
+
+        .report-table td {
+            padding: 11px 12px;
+            border-bottom: 1px solid #f0f0f0;
+            color: var(--ink);
+            vertical-align: middle;
+        }
+
+        .report-table tr:hover td {
+            background: #fafafc;
+        }
+
+        .report-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Balance Badges */
+        .badge-balance-good {
+            background: #e6f5ec;
+            color: #2e7d53;
+            border: 1px solid #b9d9c6;
+            font: 700 11px "Space Grotesk", sans-serif;
+            padding: 3px 8px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+
+        .badge-balance-low {
+            background: #fbf3e2;
+            color: #b8863a;
+            border: 1px solid #e4cb95;
+            font: 700 11px "Space Grotesk", sans-serif;
+            padding: 3px 8px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+
+        .badge-balance-empty {
+            background: #fdeee9;
+            color: #c1554a;
+            border: 1px solid #f4c9bb;
+            font: 700 11px "Space Grotesk", sans-serif;
+            padding: 3px 8px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+
+        .btn-view-emp-log {
+            padding: 4px 8px;
+            font: 600 9.5px "DM Mono", monospace;
+            border: 1px solid var(--line);
+            background: #fff;
+            color: var(--navy);
+            cursor: pointer;
+            transition: all .15s;
+            white-space: nowrap;
+        }
+
+        .btn-view-emp-log:hover {
+            background: var(--navy);
+            color: #fff;
+            border-color: var(--navy);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="home-shell">
+        <aside class="sidebar" aria-label="Main navigation">
+            <a class="sidebar-logo" href="home.html" title="ATTENZA Home">
+                <span class="emblem-letter">A</span>
+            </a>
+            <nav class="sidebar-nav">
+                <a class="sidebar-link" href="home.html">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M3 11.5 12 4l9 7.5" />
+                        <path d="M5.5 10v9.5h13V10" />
+                        <path d="M9.5 19.5V13.5h5v6" />
+                    </svg>
+                    <span>HOME</span>
+                </a>
+                <a class="sidebar-link" href="history.html">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="9" />
+                        <path d="M12 7v5l3.3 2" />
+                    </svg>
+                    <span>HISTORY</span>
+                </a>
+                <a class="sidebar-link" href="leave.html">
+                    <svg viewBox="0 0 24 24">
+                        <rect x="3.5" y="5" width="17" height="15" rx="1.5" />
+                        <path d="M3.5 9.5h17" />
+                        <path d="M8 3v4M16 3v4" />
+                        <path d="M8.5 13.5l2 2 4-4" />
+                    </svg>
+                    <span>LEAVE</span>
+                </a>
+                <a class="sidebar-link" href="reports.html" title="Smart Reports & All Branches">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M21 21H3V3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M7 14l4-4 4 4 5-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <span>SMART REPORTS</span>
+                </a>
+                <a class="sidebar-link active" href="admin.html" aria-current="page">
+                    <svg viewBox="0 0 24 24">
+                        <path
+                            d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                    </svg>
+                    <span>ADMIN</span>
+                </a>
+            </nav>
+            <div class="sidebar-foot">
+                <button class="sidebar-link" id="signOut" type="button" title="Sign out">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M9 4H5.5a1.5 1.5 0 0 0-1.5 1.5v13A1.5 1.5 0 0 0 5.5 20H9" />
+                        <path d="M16 16.5 21 12l-5-4.5" />
+                        <path d="M21 12H9" />
+                    </svg>
+                    <span>SIGN OUT</span>
+                </button>
+            </div>
+        </aside>
+
+        <main class="home-main">
+            <div class="home-topbar">
+                <span class="date-chip" id="today"></span>
+                <span class="secure"><b>●</b> SECURE SESSION</span>
+            </div>
+
+            <div class="home-top-row admin-nav-top">
+                <div class="home-greeting">
+                    <p class="step-label" id="adminStepLabel">ADMIN</p>
+                    <h1 id="adminMainTitle">Requests.</h1>
+                    <p id="adminSubtitle">Checking for pending requests…</p>
+                </div>
+
+                <!-- ── Top View Switcher: Requests vs Branch Reports ── -->
+                <div class="admin-view-switcher" role="tablist">
+                    <button class="view-switch-btn active" id="btnViewRequests" type="button" role="tab"
+                        aria-selected="true" title="View pending requests">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                        </svg>
+                        <span>REQUESTS</span>
+                        <span class="tab-badge badge-zero" id="requestsTotalBadge">0</span>
+                    </button>
+                    <button class="view-switch-btn" id="btnViewReports" type="button" role="tab" aria-selected="false"
+                        title="View branch leave reports & balances">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M18 20V10M12 20V4M6 20v-6" />
+                        </svg>
+                        <span>BRANCH REPORTS</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ════════════════════════════════════════════════════════════
+                 VIEW 1: REQUESTS (Pending Sign-in & Leave requests)
+                 ════════════════════════════════════════════════════════════ -->
+            <div id="adminRequestsView" class="admin-view-panel">
+                <div class="admin-columns">
+
+                    <!-- ── Sign-in requests card ── -->
+                    <div class="admin-card card-signin">
+                        <div class="card-header">
+                            <div class="card-icon">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                                    <path d="M10 17l5-5-5-5" />
+                                    <path d="M15 12H3" />
+                                </svg>
+                            </div>
+                            <div class="card-header-text">
+                                <p class="card-title">Sign-in Requests</p>
+                                <p class="card-subtitle">BRANCH OVERRIDE · PENDING APPROVAL</p>
+                            </div>
+                            <span class="card-count" id="signinCount">—</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-head">
+                                <span class="th">EMPLOYEE</span>
+                                <span class="th">BRANCH</span>
+                                <span class="th">DISTANCE</span>
+                                <span class="th" style="text-align:right">ACTIONS</span>
+                            </div>
+                            <div class="table-body" id="requestList">
+                                <div class="empty-row">
+                                    <div class="empty-icon">↻</div>
+                                    <p class="empty-label">Loading…</p>
+                                    <p class="empty-sub">Checking for sign-in requests that need your approval.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ── Leave requests card ── -->
+                    <div class="admin-card card-leave">
+                        <div class="card-header">
+                            <div class="card-icon">
+                                <svg viewBox="0 0 24 24">
+                                    <rect x="3.5" y="5" width="17" height="15" rx="1.5" />
+                                    <path d="M3.5 9.5h17" />
+                                    <path d="M8 3v4M16 3v4" />
+                                    <path d="M8.5 13.5l2 2 4-4" />
+                                </svg>
+                            </div>
+                            <div class="card-header-text">
+                                <p class="card-title">Leave Requests</p>
+                                <p class="card-subtitle">YOUR BRANCH · PENDING APPROVAL</p>
+                            </div>
+                            <span class="card-count" id="leaveCount">—</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-head">
+                                <span class="th">EMPLOYEE · TYPE</span>
+                                <span class="th">DATES</span>
+                                <span class="th">DAYS</span>
+                                <span class="th" style="text-align:right">ACTIONS</span>
+                            </div>
+                            <div class="table-body" id="leaveRequestList">
+                                <div class="empty-row">
+                                    <div class="empty-icon">↻</div>
+                                    <p class="empty-label">Loading…</p>
+                                    <p class="empty-sub">Checking for leave requests that need your approval.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ════════════════════════════════════════════════════════════
+                 VIEW 2: BRANCH REPORTS (Leave history & Balances)
+                 ════════════════════════════════════════════════════════════ -->
+            <div id="adminReportsView" class="admin-view-panel" hidden>
+                <div class="reports-dashboard">
+
+                    <!-- Filter / Control Bar -->
+                    <div class="reports-filter-panel">
+                        <!-- Top Filter Row -->
+                        <div class="reports-filter-row">
+                            <div class="reports-filter-group">
+                                <span class="branch-badge" id="reportBranchBadge">BRANCH</span>
+                                <select class="report-select" id="reportEmployeeFilter" title="Filter by employee">
+                                    <option value="all">All Employees</option>
+                                </select>
+                                <select class="report-select" id="reportTypeFilter" title="Filter by leave type">
+                                    <option value="all">All Leave Types</option>
+                                    <option value="medical purpose">Medical Purpose</option>
+                                    <option value="personal leave">Personal Leave</option>
+                                    <option value="half day">Half Day</option>
+                                    <option value="early leave">Early Leave</option>
+                                </select>
+                                <select class="report-select" id="reportStatusFilter" title="Filter by status">
+                                    <option value="all">All Statuses</option>
+                                    <option value="approved">Approved</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="rejected">Rejected</option>
+                                </select>
+                            </div>
+
+                            <div class="reports-filter-group">
+                                <input type="search" class="report-search-input" id="reportSearchInput"
+                                    placeholder="Search name, reason…" title="Search reports" />
+                                <button class="excel-export-btn" id="reportExportBtn" type="button"
+                                    title="Export branch report to Excel">
+                                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none">
+                                        <rect x="2" y="3" width="14" height="18" rx="1.5" fill="#1D6F42" />
+                                        <path
+                                            d="M4.6 7.5h2.15l1.55 2.55 1.55-2.55h2.15L9.6 12l2.55 4.5h-2.2l-1.6-2.75-1.6 2.75H4.5L7.1 12 4.6 7.5Z"
+                                            fill="#fff" />
+                                        <path
+                                            d="M14 6h6.5a1.5 1.5 0 0 1 1.5 1.5v9a1.5 1.5 0 0 1-1.5 1.5H14v-3h5.5v-1.5H14v-1.5h5.5V10H14V8.5h5.5V7H14V6Z"
+                                            fill="#1D6F42" />
+                                    </svg>
+                                    <span>EXCEL</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Date Filter Row -->
+                        <div class="reports-filter-row">
+                            <div class="reports-filter-group">
+                                <span class="filter-label">PERIOD ·</span>
+                                <button class="filter-btn active" data-report-range="all" type="button">ALL
+                                    TIME</button>
+                                <button class="filter-btn" data-report-range="thismonth" type="button">THIS
+                                    MONTH</button>
+                                <button class="filter-btn" data-report-range="thisweek" type="button">THIS WEEK</button>
+                                <span class="filter-sep">·</span>
+                                <input type="date" class="filter-date-input" id="reportDateFrom" title="From date" />
+                                <span class="filter-sep">TO</span>
+                                <input type="date" class="filter-date-input" id="reportDateTo" title="To date" />
+                                <button class="filter-btn" id="reportApplyRange" type="button">GO</button>
+                            </div>
+
+                            <div class="reports-filter-group" id="reportActiveFilterText"
+                                style="font:500 10px 'DM Mono',monospace;color:var(--muted)">
+                                Showing all branch records
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Branch KPI Cards Strip -->
+                    <div class="reports-kpi-strip">
+                        <div class="rkpi-card kpi-emp">
+                            <p class="rkpi-label">BRANCH EMPLOYEES</p>
+                            <p class="rkpi-value" id="kpiBranchEmployees">—</p>
+                            <p class="rkpi-sub">Assigned to branch</p>
+                        </div>
+                        <div class="rkpi-card kpi-leaves">
+                            <p class="rkpi-label">LEAVE APPLICATIONS</p>
+                            <p class="rkpi-value" id="kpiBranchLeaves">—</p>
+                            <p class="rkpi-sub" id="kpiBranchLeavesSub">Total records</p>
+                        </div>
+                        <div class="rkpi-card kpi-deducted">
+                            <p class="rkpi-label">DAYS DEDUCTED</p>
+                            <p class="rkpi-value" id="kpiBranchDaysDeducted">—</p>
+                            <p class="rkpi-sub">Approved leaves</p>
+                        </div>
+                        <div class="rkpi-card kpi-types">
+                            <p class="rkpi-label">HALF / EARLY</p>
+                            <p class="rkpi-value" id="kpiBranchHalfEarly">—</p>
+                            <p class="rkpi-sub" id="kpiBranchHalfEarlySub">0 half · 0 early</p>
+                        </div>
+                        <div class="rkpi-card kpi-quota">
+                            <p class="rkpi-label">EARNED LEAVE REMAINING</p>
+                            <p class="rkpi-value" id="kpiBranchQuotaLeft">—</p>
+                            <p class="rkpi-sub" id="kpiBranchQuotaSub">Total quota remaining</p>
+                        </div>
+                    </div>
+
+                    <!-- Sub-tabs & Report Content -->
+                    <div class="reports-content-panel">
+                        <div class="reports-subnav">
+                            <div class="reports-subtabs">
+                                <button class="subtab-btn active" id="subtabBalances" type="button">
+                                    LEAVE BALANCES
+                                </button>
+                                <button class="subtab-btn" id="subtabHistory" type="button">
+                                    LEAVE HISTORY LOG
+                                </button>
+                            </div>
+                            <span class="reports-table-count" id="reportTableCount">—</span>
+                        </div>
+
+                        <!-- Sub-tab 1: Leave Balances Table -->
+                        <div class="report-table-scroll" id="reportBalancesTableWrap">
+                            <table class="report-table" id="reportBalancesTable">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>EMPLOYEE</th>
+                                        <th>ROLE</th>
+                                        <th>ALLOTTED</th>
+                                        <th>DAYS USED</th>
+                                        <th>REMAINING LEAVE</th>
+                                        <th>MEDICAL</th>
+                                        <th>PERSONAL</th>
+                                        <th>HALF DAY</th>
+                                        <th>EARLY LEAVE</th>
+                                        <th>PENDING</th>
+                                        <th style="text-align:right">ACTION</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reportBalancesBody">
+                                    <tr>
+                                        <td colspan="12" style="text-align:center;padding:32px;color:var(--muted)">
+                                            Loading employee balances…
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Sub-tab 2: Leave History Table -->
+                        <div class="report-table-scroll" id="reportHistoryTableWrap" hidden>
+                            <table class="report-table" id="reportHistoryTable">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>EMPLOYEE</th>
+                                        <th>LEAVE TYPE</th>
+                                        <th>FROM DATE</th>
+                                        <th>TO DATE</th>
+                                        <th>DURATION</th>
+                                        <th>REASON</th>
+                                        <th>STATUS</th>
+                                        <th>REVIEWED BY</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reportHistoryBody">
+                                    <tr>
+                                        <td colspan="9" style="text-align:center;padding:32px;color:var(--muted)">
+                                            Loading leave history…
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <div class="signout-overlay" id="signoutOverlay" aria-hidden="true">
+        <div class="signout-modal">
+            <div class="spinner-wrapper">
+                <div class="spinner-wheel"></div>
+                <div class="spinner-icon">
+                    <span class="emblem-letter">A</span>
+                </div>
+            </div>
+            <p class="signout-label">Signing Out</p>
+            <p class="signout-text">Closing session & saving attendance safely…</p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="soundfx.js"></script>
+    <script src="reports-auth.js"></script>
+    <script src="admin.js"></script>
+</body>
+
+</html>
